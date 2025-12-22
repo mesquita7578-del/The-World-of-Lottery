@@ -30,6 +30,7 @@ export interface LotteryTicket {
   backImageUrl?: string;
   notes?: string;
   createdAt: number;
+  isFavorite?: boolean;
 }
 
 export interface CollectionStats {

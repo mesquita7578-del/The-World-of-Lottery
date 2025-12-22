@@ -4,7 +4,7 @@ import { Continent, TicketState, LotteryTicket } from '../types';
 import { CONTINENTS, TICKET_STATES, LOTTERY_TYPES, COUNTRY_ISO_MAP } from '../constants';
 import { Button } from './Button';
 import { analyzeLotteryTicket } from '../services/geminiService';
-import { Sparkles, Upload, X, Copy, AlignLeft } from 'lucide-react';
+import { Sparkles, Upload, X, Heart } from 'lucide-react';
 
 interface LotteryFormProps {
   onSave: (ticket: Partial<LotteryTicket>) => void;
@@ -25,11 +25,12 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
     country: 'Portugal',
     continent: Continent.EUROPE,
     state: TicketState.UNCIRCULATED,
-    type: 'National Lottery',
+    type: 'Lotaria Nacional',
     entity: '',
     frontImageUrl: '',
     backImageUrl: '',
-    notes: ''
+    notes: '',
+    isFavorite: false
   });
 
   const frontInputRef = useRef<HTMLInputElement>(null);
@@ -88,7 +89,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Novo Registo no Arquivo</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Olá Jorge, a Geni está pronta para processar a frente e o verso do seu bilhete.</p>
+          <p className="text-xs text-slate-400 mt-0.5">Jorge, estou pronta para analisar estas peças especiais (Mongólia e Tartaristão são magníficas!).</p>
         </div>
         <Button variant="outline" size="sm" onClick={onCancel}>
           <X size={16} />
@@ -96,10 +97,8 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* Left Column: Image Uploads */}
         <div className="lg:col-span-5 space-y-6">
           <div className="grid grid-cols-1 gap-4">
-            {/* Front Image */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Imagem Frente (Obrigatório)</label>
               <div className="relative aspect-[3/2] w-full border-2 border-dashed border-slate-300 rounded-xl overflow-hidden flex flex-col items-center justify-center bg-slate-50 group">
@@ -130,7 +129,6 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
               </div>
             </div>
 
-            {/* Back Image */}
             <div className="space-y-2">
               <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Imagem Verso (Opcional)</label>
               <div className="relative aspect-[3/2] w-full border-2 border-dashed border-slate-300 rounded-xl overflow-hidden flex flex-col items-center justify-center bg-slate-50 group">
@@ -174,9 +172,29 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
               Analisar com Geni AI
             </Button>
           )}
+
+          <div className="bg-amber-50 border border-amber-100 p-4 rounded-xl flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className={`p-2 rounded-lg ${formData.isFavorite ? 'bg-amber-500 text-white' : 'bg-white text-slate-300 shadow-sm border border-slate-100'}`}>
+                <Heart size={18} fill={formData.isFavorite ? "currentColor" : "none"} />
+              </div>
+              <div>
+                <p className="text-[11px] font-bold text-slate-700 uppercase">Peça Especial</p>
+                <p className="text-[10px] text-slate-500">Marcar como favorita no arquivo</p>
+              </div>
+            </div>
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={formData.isFavorite}
+                onChange={e => setFormData({...formData, isFavorite: e.target.checked})}
+              />
+              <div className="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+            </label>
+          </div>
         </div>
 
-        {/* Right Column: Details */}
         <div className="lg:col-span-7 space-y-4">
           <div className="grid grid-cols-2 gap-4">
             <div>
@@ -284,7 +302,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Notas / Observações</label>
             <textarea 
-              placeholder="Jorge, adicione aqui detalhes específicos, curiosidades ou o estado de conservação..."
+              placeholder="Jorge, adicione aqui por que razão estas peças da Mongólia ou Kazan são tão importantes para si..."
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm min-h-[80px]"
               value={formData.notes}
               onChange={e => setFormData({...formData, notes: e.target.value})}

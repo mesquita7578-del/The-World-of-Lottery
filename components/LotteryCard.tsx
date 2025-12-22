@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { LotteryTicket } from '../types';
-import { Maximize2, MapPin, Calendar, FlipHorizontal, AlertTriangle } from 'lucide-react';
+import { Maximize2, MapPin, Calendar, FlipHorizontal, AlertTriangle, Heart } from 'lucide-react';
 
 interface LotteryCardProps {
   ticket: LotteryTicket;
@@ -32,10 +32,11 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
 
   return (
     <div 
-      className={`group bg-white rounded-lg shadow-sm transition-all duration-300 border border-slate-100 overflow-hidden relative
+      className={`group bg-white rounded-lg shadow-sm transition-all duration-300 border overflow-hidden relative
         ${isDimmed ? 'opacity-30 grayscale-[0.5] scale-[0.98]' : 'opacity-100 grayscale-0'}
         ${isHighlighted ? 'ring-2 ring-indigo-500 shadow-lg z-10 scale-[1.02]' : 'z-0'}
-        ${isPotentialDuplicate ? 'border-rose-200' : ''}
+        ${isPotentialDuplicate ? 'border-rose-200' : 'border-slate-100'}
+        ${ticket.isFavorite ? 'border-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]' : ''}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -53,6 +54,14 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
         <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
           <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity scale-75 group-hover:scale-100 duration-300" size={20} />
         </div>
+
+        {ticket.isFavorite && (
+          <div className="absolute top-1.5 right-1.5 z-20">
+            <div className="bg-amber-400 text-white p-1 rounded-full shadow-lg">
+              <Heart size={10} fill="currentColor" />
+            </div>
+          </div>
+        )}
 
         <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 pointer-events-none">
            <span className="px-1.5 py-0.5 bg-white/80 backdrop-blur-sm rounded text-[9px] font-bold text-slate-600 shadow-sm border border-slate-100">
@@ -84,20 +93,22 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
           </div>
         )}
 
-        <div className="absolute top-1.5 right-1.5 pointer-events-none">
-          <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm ${
-            ticket.state === 'Amostra' ? 'bg-amber-500' : 
-            ticket.state === 'Specimen' ? 'bg-indigo-500' : 
-            ticket.state.includes('cs') ? 'bg-rose-400' : 'bg-emerald-500'
-          }`}>
-            {ticket.state.split(' ')[0]}
-          </span>
-        </div>
+        {!ticket.isFavorite && (
+          <div className="absolute top-1.5 right-1.5 pointer-events-none">
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm ${
+              ticket.state === 'Amostra' ? 'bg-amber-500' : 
+              ticket.state === 'Specimen' ? 'bg-indigo-500' : 
+              ticket.state.includes('cs') ? 'bg-rose-400' : 'bg-emerald-500'
+            }`}>
+              {ticket.state.split(' ')[0]}
+            </span>
+          </div>
+        )}
       </div>
       
       <div className="p-2.5 space-y-1.5">
         <div className="flex justify-between items-start gap-1">
-          <h3 className="font-semibold text-slate-800 text-[11px] leading-tight truncate flex-1" title={ticket.entity}>
+          <h3 className={`font-semibold text-slate-800 text-[11px] leading-tight truncate flex-1 ${ticket.isFavorite ? 'text-amber-700' : ''}`} title={ticket.entity}>
             {ticket.entity}
           </h3>
           <span className="text-indigo-600 font-bold text-[10px] whitespace-nowrap">
