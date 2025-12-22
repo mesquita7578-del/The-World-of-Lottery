@@ -1,0 +1,7 @@
+{
+  "name": "The World of Lottery Archive",
+  "description": "A professional digital archive for private lottery ticket collections, featuring AI-powered metadata extraction, multi-continent categorization, and advanced statistics.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
