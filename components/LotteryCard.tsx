@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { LotteryTicket } from '../types';
+import { Maximize2 } from 'lucide-react';
 
 interface LotteryCardProps {
   ticket: LotteryTicket;
@@ -10,21 +11,29 @@ interface LotteryCardProps {
 export const LotteryCard: React.FC<LotteryCardProps> = ({ ticket, onClick }) => {
   return (
     <div 
-      onClick={() => onClick?.(ticket)}
-      className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 overflow-hidden cursor-pointer"
+      className="group bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-300 border border-slate-100 overflow-hidden"
     >
-      <div className="aspect-[3/2] w-full overflow-hidden bg-slate-50 relative">
+      <div 
+        className="aspect-[3/2] w-full overflow-hidden bg-slate-50 relative cursor-zoom-in"
+        onClick={() => onClick?.(ticket)}
+      >
         <img 
           src={ticket.imageUrl} 
           alt={ticket.extractionNo}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
-        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1">
+        
+        {/* Subtle Overlay on Hover */}
+        <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/20 transition-colors flex items-center justify-center">
+          <Maximize2 className="text-white opacity-0 group-hover:opacity-100 transition-opacity scale-75 group-hover:scale-100 duration-300" size={20} />
+        </div>
+
+        <div className="absolute top-1.5 left-1.5 flex flex-col gap-1 pointer-events-none">
            <span className="px-1.5 py-0.5 bg-white/80 backdrop-blur-sm rounded text-[9px] font-bold text-slate-600 shadow-sm border border-slate-100">
             {ticket.autoId}
           </span>
         </div>
-        <div className="absolute top-1.5 right-1.5">
+        <div className="absolute top-1.5 right-1.5 pointer-events-none">
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm ${
             ticket.state === 'Amostra' ? 'bg-amber-500' : 
             ticket.state === 'Specimen' ? 'bg-indigo-500' : 

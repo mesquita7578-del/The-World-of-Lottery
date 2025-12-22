@@ -4,6 +4,7 @@ import { LotteryTicket, Continent } from './types';
 import { LotteryCard } from './components/LotteryCard';
 import { LotteryForm } from './components/LotteryForm';
 import { StatsDashboard } from './components/StatsDashboard';
+import { ImageZoomModal } from './components/ImageZoomModal';
 import { Button } from './components/Button';
 import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck } from 'lucide-react';
 
@@ -18,6 +19,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<'gallery' | 'stats' | 'add'>('gallery');
   const [searchTerm, setSearchTerm] = useState('');
   const [continentFilter, setContinentFilter] = useState<string>('All');
+  const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
   
   // Auth State
   const [collector, setCollector] = useState<CollectorProfile | null>(null);
@@ -185,6 +187,14 @@ const App: React.FC = () => {
   // Main App View
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
+      {/* Zoom Modal Overlay */}
+      {selectedTicket && (
+        <ImageZoomModal 
+          ticket={selectedTicket} 
+          onClose={() => setSelectedTicket(null)} 
+        />
+      )}
+
       {/* Top Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 md:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -276,7 +286,11 @@ const App: React.FC = () => {
             {filteredTickets.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                 {filteredTickets.map(ticket => (
-                  <LotteryCard key={ticket.id} ticket={ticket} />
+                  <LotteryCard 
+                    key={ticket.id} 
+                    ticket={ticket} 
+                    onClick={(t) => setSelectedTicket(t)} 
+                  />
                 ))}
               </div>
             ) : (
