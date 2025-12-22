@@ -94,7 +94,14 @@ const App: React.FC = () => {
       const matchesContinent = continentFilter === 'All' || t.continent === continentFilter;
       
       return matchesSearch && matchesContinent;
-    }).sort((a, b) => b.createdAt - a.createdAt);
+    }).sort((a, b) => {
+      // Sort by Extraction Number (numeric natural sort)
+      // This ensures that "Game 2" comes before "Game 10"
+      return a.extractionNo.localeCompare(b.extractionNo, undefined, { 
+        numeric: true, 
+        sensitivity: 'base' 
+      });
+    });
   }, [tickets, searchTerm, continentFilter]);
 
   const handleSaveTicket = (ticketData: Partial<LotteryTicket>) => {
