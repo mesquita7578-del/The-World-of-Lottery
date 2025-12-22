@@ -1,6 +1,6 @@
 
 import React, { useMemo } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend } from 'recharts';
+import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, Legend, CartesianGrid } from 'recharts';
 import { LotteryTicket } from '../types';
 
 interface StatsDashboardProps {
@@ -37,6 +37,17 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
       .slice(0, 10);
   }, [tickets]);
 
+  const yearData = useMemo(() => {
+    const counts: Record<string, number> = {};
+    tickets.forEach(t => {
+      const year = t.drawDate?.split('-')[0] || 'Desconhecido';
+      counts[year] = (counts[year] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }, [tickets]);
+
   if (tickets.length === 0) {
     return (
       <div className="bg-white p-12 rounded-xl border border-slate-200 text-center">
@@ -46,7 +57,26 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
   }
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-12">
+      {/* Gráfico de Evolução por Ano */}
+      <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
+        <h3 className="text-lg font-bold text-slate-800 mb-6">Linha do Tempo da Coleção (Itens por Ano)</h3>
+        <div className="h-[350px]">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={yearData}>
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+              <XAxis dataKey="name" style={{ fontSize: '10px' }} />
+              <YAxis style={{ fontSize: '10px' }} />
+              <Tooltip 
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
+                cursor={{ fill: '#f8fafc' }}
+              />
+              <Bar dataKey="value" fill="#4f46e5" radius={[4, 4, 0, 0]} name="Qtd. Bilhetes" />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
         <h3 className="text-lg font-bold text-slate-800 mb-6">Distribuição por Continente</h3>
         <div className="h-[300px]">
@@ -80,7 +110,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
               <XAxis type="number" hide />
               <YAxis dataKey="name" type="category" width={80} style={{ fontSize: '10px', fontWeight: 'bold' }} />
               <Tooltip />
-              <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Itens" />
+              <Bar dataKey="value" fill="#f59e0b" radius={[0, 4, 4, 0]} name="Itens" />
             </BarChart>
           </ResponsiveContainer>
         </div>

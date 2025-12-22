@@ -53,13 +53,11 @@ const App: React.FC = () => {
     loadData();
   }, []);
 
-  // Lógica para identificar IDs que são potenciais duplicados
   const duplicateIds = useMemo(() => {
     const ids = new Set<string>();
     const groups: Record<string, string[]> = {};
 
     tickets.forEach(t => {
-      // Chave baseada em país, data, valor e número de extração (normalizada)
       const key = `${t.country}|${t.drawDate}|${t.value}|${t.extractionNo}`.toLowerCase().replace(/\s+/g, '');
       if (!groups[key]) groups[key] = [];
       groups[key].push(t.id);
@@ -115,6 +113,15 @@ const App: React.FC = () => {
       
       return matchesSearch && matchesContinent && matchesDuplicateFilter;
     }).sort((a, b) => {
+      // Ordenação Principal: Ano (do mais antigo para o mais recente)
+      const dateA = a.drawDate || '0000';
+      const dateB = b.drawDate || '0000';
+      
+      if (dateA !== dateB) {
+        return dateA.localeCompare(dateB);
+      }
+      
+      // Ordenação Secundária: Nº Extração
       return a.extractionNo.localeCompare(b.extractionNo, undefined, { 
         numeric: true, 
         sensitivity: 'base' 
