@@ -186,15 +186,15 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
       {/* Top Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-4 md:px-8">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 md:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
             <div className="bg-indigo-600 p-2 rounded-lg text-white">
-              <Archive size={24} />
+              <Archive size={20} />
             </div>
             <div>
-              <h1 className="text-xl md:text-2xl font-serif font-bold text-slate-900 leading-tight">The World of Lottery</h1>
-              <p className="text-xs text-slate-500 font-medium tracking-wide uppercase flex items-center gap-1">
+              <h1 className="text-lg md:text-xl font-serif font-bold text-slate-900 leading-tight">The World of Lottery</h1>
+              <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase flex items-center gap-1">
                 <User size={10} className="text-indigo-500" />
                 Archive of {collector?.name}
               </p>
@@ -208,22 +208,23 @@ const App: React.FC = () => {
                 className={`p-2 rounded-md transition-all ${view === 'gallery' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
                 title="Gallery View"
               >
-                <Globe size={18} />
+                <Globe size={16} />
               </button>
               <button 
                 onClick={() => setView('stats')}
                 className={`p-2 rounded-md transition-all ${view === 'stats' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
                 title="Statistics"
               >
-                <BarChart3 size={18} />
+                <BarChart3 size={16} />
               </button>
             </div>
             <Button 
               variant="secondary" 
               size="sm" 
               onClick={() => setView('add')}
+              className="h-9"
             >
-              <Plus size={16} className="mr-2" />
+              <Plus size={14} className="mr-1.5" />
               Add Item
             </Button>
             <button 
@@ -231,7 +232,7 @@ const App: React.FC = () => {
               className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
               title="Logout"
             >
-              <LogOut size={20} />
+              <LogOut size={18} />
             </button>
           </div>
         </div>
@@ -242,24 +243,24 @@ const App: React.FC = () => {
         {view === 'gallery' && (
           <div className="space-y-6">
             {/* Search & Filters */}
-            <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+            <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-3 rounded-xl shadow-sm border border-slate-200">
               <div className="relative flex-1 w-full">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input 
                   type="text" 
-                  placeholder="Search by country, ID, or entity..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                  placeholder="Search archive..."
+                  className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
-                <Filter size={16} className="text-slate-400 mr-2 flex-shrink-0" />
+              <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
+                <Filter size={14} className="text-slate-400 mr-1 flex-shrink-0" />
                 {continents.map(c => (
                   <button
                     key={c}
                     onClick={() => setContinentFilter(c)}
-                    className={`px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${
+                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
                       continentFilter === c 
                         ? 'bg-indigo-600 text-white' 
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
@@ -271,21 +272,21 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Grid */}
+            {/* Grid - More compact grid for subtle look */}
             {filteredTickets.length > 0 ? (
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                 {filteredTickets.map(ticket => (
                   <LotteryCard key={ticket.id} ticket={ticket} />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
-                <Archive className="h-16 w-16 text-slate-200 mb-4" />
-                <h3 className="text-xl font-bold text-slate-600">No items found</h3>
-                <p className="text-slate-400 mt-2 max-w-xs text-center">
-                  Try adjusting your search or filter, or add a new lottery ticket to your collection.
+                <Archive className="h-12 w-12 text-slate-200 mb-4" />
+                <h3 className="text-lg font-bold text-slate-600">No items found</h3>
+                <p className="text-slate-400 mt-1 text-sm max-w-xs text-center">
+                  Try adjusting your search or add a new ticket.
                 </p>
-                <Button variant="outline" className="mt-6" onClick={() => setView('add')}>
+                <Button variant="outline" className="mt-6" size="sm" onClick={() => setView('add')}>
                   Add your first ticket
                 </Button>
               </div>
@@ -296,8 +297,8 @@ const App: React.FC = () => {
         {view === 'stats' && (
           <div className="space-y-6">
             <div className="flex items-center justify-between">
-              <h2 className="text-2xl font-bold text-slate-800">Archive Insights</h2>
-              <span className="text-slate-500 text-sm font-medium">{tickets.length} Items Archived</span>
+              <h2 className="text-xl font-bold text-slate-800">Archive Insights</h2>
+              <span className="text-slate-500 text-xs font-medium">{tickets.length} Items Archived</span>
             </div>
             <StatsDashboard tickets={tickets} />
           </div>
@@ -316,8 +317,8 @@ const App: React.FC = () => {
 
       {/* Simple Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-center mt-auto">
-        <p className="text-slate-400 text-sm">
-          The World of Lottery Archive &copy; {new Date().getFullYear()} - Digital Collection Management
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">
+          The World of Lottery &copy; {new Date().getFullYear()}
         </p>
       </footer>
     </div>
