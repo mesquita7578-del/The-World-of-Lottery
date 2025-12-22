@@ -6,7 +6,7 @@ import { LotteryForm } from './components/LotteryForm';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
 import { Button } from './components/Button';
-import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
+import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck, Sparkles, AlertCircle, Map } from 'lucide-react';
 import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
 
 interface CollectorProfile {
@@ -19,6 +19,7 @@ const App: React.FC = () => {
   const [view, setView] = useState<'gallery' | 'stats' | 'add'>('gallery');
   const [searchTerm, setSearchTerm] = useState('');
   const [continentFilter, setContinentFilter] = useState<string>('Todos');
+  const [countryFilter, setCountryFilter] = useState<string>('Todos');
   const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
   const [hoveredTicket, setHoveredTicket] = useState<LotteryTicket | null>(null);
   const [showOnlyDuplicates, setShowOnlyDuplicates] = useState(false);
@@ -72,6 +73,17 @@ const App: React.FC = () => {
     return ids;
   }, [tickets]);
 
+  // Lista dinâmica de países presentes na coleção para o filtro
+  const availableCountries = useMemo(() => {
+    const countries = new Set<string>();
+    tickets.forEach(t => {
+      if (continentFilter === 'Todos' || t.continent === continentFilter) {
+        countries.add(t.country);
+      }
+    });
+    return ['Todos', ...Array.from(countries).sort()];
+  }, [tickets, continentFilter]);
+
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!authForm.name || !authForm.password) {
@@ -109,13 +121,14 @@ const App: React.FC = () => {
         t.autoId.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesContinent = continentFilter === 'Todos' || t.continent === continentFilter;
+      const matchesCountry = countryFilter === 'Todos' || t.country === countryFilter;
       const matchesDuplicateFilter = !showOnlyDuplicates || duplicateIds.has(t.id);
       
-      return matchesSearch && matchesContinent && matchesDuplicateFilter;
+      return matchesSearch && matchesContinent && matchesCountry && matchesDuplicateFilter;
     }).sort((a, b) => {
       // Ordenação Principal: Ano (do mais antigo para o mais recente)
-      const dateA = a.drawDate || '0000';
-      const dateB = b.drawDate || '0000';
+      const dateA = a.drawDate || '0000-00-00';
+      const dateB = b.drawDate || '0000-00-00';
       
       if (dateA !== dateB) {
         return dateA.localeCompare(dateB);
@@ -127,7 +140,7 @@ const App: React.FC = () => {
         sensitivity: 'base' 
       });
     });
-  }, [tickets, searchTerm, continentFilter, showOnlyDuplicates, duplicateIds]);
+  }, [tickets, searchTerm, continentFilter, countryFilter, showOnlyDuplicates, duplicateIds]);
 
   const handleSaveTicket = async (ticketData: Partial<LotteryTicket>) => {
     const newTicket: LotteryTicket = {
@@ -137,7 +150,7 @@ const App: React.FC = () => {
     };
     try {
       await saveTicketDB(newTicket);
-      setTickets(prev => [newTicket, ...prev]);
+      setTickets(prev => [...prev, newTicket]); // Adiciona no final mas a ordenação do useMemo tratará do resto
       setView('gallery');
     } catch (err) {
       alert("Erro ao guardar na base de dados.");
@@ -300,36 +313,65 @@ const App: React.FC = () => {
           </div>
         ) : view === 'gallery' ? (
           <div className="space-y-6">
-            <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+            <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-4 rounded-xl shadow-sm border border-slate-200">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input 
                   type="text" 
                   placeholder="Pesquisar por país, entidade ou ID..."
-                  className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
+                  className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
                 />
               </div>
-              <div className="flex items-center gap-2 w-full md:w-auto overflow-x-auto pb-1 md:pb-0 scrollbar-hide">
-                <Filter size={14} className="text-slate-400 mr-1 flex-shrink-0" />
-                {continents.map(c => (
-                  <button
-                    key={c}
-                    onClick={() => {setContinentFilter(c); setShowOnlyDuplicates(false)}}
-                    className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
-                      continentFilter === c && !showOnlyDuplicates ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Globe size={14} className="text-slate-400" />
+                  <div className="flex bg-slate-100 p-0.5 rounded-lg overflow-x-auto scrollbar-hide">
+                    {continents.map(c => (
+                      <button
+                        key={c}
+                        onClick={() => {
+                          setContinentFilter(c);
+                          setCountryFilter('Todos');
+                          setShowOnlyDuplicates(false);
+                        }}
+                        className={`px-3 py-1 rounded-md text-[10px] font-bold whitespace-nowrap transition-all ${
+                          continentFilter === c && !showOnlyDuplicates ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'
+                        }`}
+                      >
+                        {c}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="h-6 w-px bg-slate-200"></div>
+
+                <div className="flex items-center gap-2">
+                  <Map size={14} className="text-slate-400" />
+                  <select 
+                    value={countryFilter}
+                    onChange={(e) => setCountryFilter(e.target.value)}
+                    className="bg-slate-100 border-none rounded-lg px-3 py-1 text-[10px] font-bold text-slate-700 outline-none focus:ring-1 focus:ring-indigo-300"
                   >
-                    {c}
-                  </button>
-                ))}
+                    <option value="Todos">Todos os Países</option>
+                    {availableCountries.filter(c => c !== 'Todos').map(c => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </div>
                 
                 {duplicateIds.size > 0 && (
                    <button
-                     onClick={() => {setShowOnlyDuplicates(!showOnlyDuplicates); setContinentFilter('Todos')}}
-                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
-                       showOnlyDuplicates ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                     onClick={() => {
+                       setShowOnlyDuplicates(!showOnlyDuplicates);
+                       setContinentFilter('Todos');
+                       setCountryFilter('Todos');
+                     }}
+                     className={`px-3 py-1 rounded-lg text-[10px] font-bold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                       showOnlyDuplicates ? 'bg-rose-600 text-white shadow-md' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
                      }`}
                    >
                      <AlertCircle size={12} />
@@ -337,6 +379,12 @@ const App: React.FC = () => {
                    </button>
                 )}
               </div>
+            </div>
+
+            <div className="flex justify-between items-center px-1">
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                Mostrando {filteredTickets.length} de {tickets.length} itens • Ordenado por Ano
+              </p>
             </div>
 
             {filteredTickets.length > 0 ? (
@@ -366,9 +414,9 @@ const App: React.FC = () => {
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <Archive className="h-12 w-12 text-slate-200 mb-4" />
                 <h3 className="text-lg font-bold text-slate-600">Nada encontrado no arquivo</h3>
-                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, a Geni está pronta para começar a organizar os seus bilhetes!</p>
-                <Button variant="outline" className="mt-6" size="sm" onClick={() => setView('add')}>
-                  Adicionar o primeiro bilhete
+                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, tente ajustar os filtros ou pesquisar por outro termo.</p>
+                <Button variant="outline" className="mt-6" size="sm" onClick={() => {setContinentFilter('Todos'); setCountryFilter('Todos'); setSearchTerm(''); setShowOnlyDuplicates(false)}}>
+                  Limpar Filtros
                 </Button>
               </div>
             )}
