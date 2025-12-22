@@ -1,16 +1,17 @@
 
 import React, { useState } from 'react';
-import { X, Download, Trash2, FlipHorizontal, ZoomIn, ZoomOut, Sparkles, Search } from 'lucide-react';
+import { X, Download, Trash2, FlipHorizontal, ZoomIn, ZoomOut, Sparkles, Edit2 } from 'lucide-react';
 import { LotteryTicket } from '../types';
 
 interface ImageZoomModalProps {
   ticket: LotteryTicket;
   onClose: () => void;
   onDelete: () => void;
+  onEdit: (ticket: LotteryTicket) => void;
   onResearch: (ticket: LotteryTicket) => void;
 }
 
-export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose, onDelete, onResearch }) => {
+export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose, onDelete, onEdit, onResearch }) => {
   const [side, setSide] = useState<'front' | 'back'>('front');
   const [isZoomed, setIsZoomed] = useState(false);
   const currentImage = side === 'front' ? ticket.frontImageUrl : (ticket.backImageUrl || ticket.frontImageUrl);
@@ -42,7 +43,15 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
               className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg group"
             >
               <Sparkles size={14} className="group-hover:animate-pulse" />
-              <span>Investigar com Geni</span>
+              <span>Investigar</span>
+            </button>
+
+            <button 
+              onClick={() => onEdit(ticket)}
+              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-900 hover:bg-white rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
+            >
+              <Edit2 size={14} />
+              <span>Editar</span>
             </button>
 
             {ticket.backImageUrl && (

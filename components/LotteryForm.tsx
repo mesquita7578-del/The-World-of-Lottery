@@ -1,21 +1,22 @@
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Continent, TicketState, LotteryTicket } from '../types';
 import { CONTINENTS, TICKET_STATES, LOTTERY_TYPES, COUNTRY_ISO_MAP } from '../constants';
 import { Button } from './Button';
 import { analyzeLotteryTicket } from '../services/geminiService';
-import { Sparkles, Upload, X, Heart } from 'lucide-react';
+import { Sparkles, Upload, X, Heart, Save } from 'lucide-react';
 
 interface LotteryFormProps {
   onSave: (ticket: Partial<LotteryTicket>) => void;
   onCancel: () => void;
   ticketCount: number;
+  initialData?: LotteryTicket | null;
 }
 
-export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, ticketCount }) => {
+export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, ticketCount, initialData }) => {
   const [loading, setLoading] = useState(false);
-  const [frontPreview, setFrontPreview] = useState<string | null>(null);
-  const [backPreview, setBackPreview] = useState<string | null>(null);
+  const [frontPreview, setFrontPreview] = useState<string | null>(initialData?.frontImageUrl || null);
+  const [backPreview, setBackPreview] = useState<string | null>(initialData?.backImageUrl || null);
   
   const [formData, setFormData] = useState<Partial<LotteryTicket>>({
     extractionNo: '',
@@ -32,6 +33,14 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
     notes: '',
     isFavorite: false
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({ ...initialData });
+      setFrontPreview(initialData.frontImageUrl);
+      setBackPreview(initialData.backImageUrl || null);
+    }
+  }, [initialData]);
 
   const frontInputRef = useRef<HTMLInputElement>(null);
   const backInputRef = useRef<HTMLInputElement>(null);
@@ -78,18 +87,28 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
       return;
     }
     
-    const countryPrefix = COUNTRY_ISO_MAP[formData.country!] || formData.country?.substring(0, 2).toUpperCase() || 'XX';
-    const autoId = `${countryPrefix}-${String(ticketCount + 1).padStart(4, '0')}`;
-    
-    onSave({ ...formData, autoId });
+    // Se não for edição, gera novo ID automático
+    if (!initialData) {
+      const countryPrefix = COUNTRY_ISO_MAP[formData.country!] || formData.country?.substring(0, 2).toUpperCase() || 'XX';
+      const autoId = `${countryPrefix}-${String(ticketCount + 1).padStart(4, '0')}`;
+      onSave({ ...formData, autoId });
+    } else {
+      onSave(formData);
+    }
   };
 
+  const isEditing = !!initialData;
+
   return (
-    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-lg max-w-5xl mx-auto">
+    <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-lg max-w-5xl mx-auto animate-in fade-in slide-in-from-bottom-4 duration-500">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h2 className="text-xl font-bold text-slate-800">Novo Registo no Arquivo</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Jorge, estou pronta para analisar estas peças especiais (Mongólia e Tartaristão são magníficas!).</p>
+          <h2 className="text-xl font-bold text-slate-800">
+            {isEditing ? `Editar Registo: ${formData.autoId}` : 'Novo Registo no Arquivo'}
+          </h2>
+          <p className="text-xs text-slate-400 mt-0.5">
+            {isEditing ? 'Atualize os detalhes da sua peça de coleção.' : 'Jorge, estou pronta para analisar estas peças especiais.'}
+          </p>
         </div>
         <Button variant="outline" size="sm" onClick={onCancel}>
           <X size={16} />
@@ -169,7 +188,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
               isLoading={loading}
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Analisar com Geni AI
+              Re-analisar com Geni AI
             </Button>
           )}
 
@@ -302,7 +321,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Notas / Observações</label>
             <textarea 
-              placeholder="Jorge, adicione aqui por que razão estas peças da Mongólia ou Kazan são tão importantes para si..."
+              placeholder="Jorge, adicione aqui por que razão estas peças são importantes para si..."
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm min-h-[80px]"
               value={formData.notes}
               onChange={e => setFormData({...formData, notes: e.target.value})}
@@ -311,7 +330,8 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
 
           <div className="pt-4 flex gap-3">
             <Button type="submit" className="flex-1 h-11">
-              Guardar no Arquivo
+              <Save size={16} className="mr-2" />
+              {isEditing ? 'Atualizar Registo' : 'Guardar no Arquivo'}
             </Button>
             <Button type="button" variant="outline" className="flex-1 h-11" onClick={onCancel}>
               Cancelar

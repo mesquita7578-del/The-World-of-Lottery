@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
 import { LotteryTicket } from '../types';
-import { Maximize2, MapPin, Calendar, FlipHorizontal, AlertTriangle, Heart } from 'lucide-react';
+import { Maximize2, MapPin, Calendar, FlipHorizontal, AlertTriangle, Heart, Edit2 } from 'lucide-react';
 
 interface LotteryCardProps {
   ticket: LotteryTicket;
   onClick?: (ticket: LotteryTicket) => void;
+  onEdit?: (ticket: LotteryTicket) => void;
   onMouseEnter?: () => void;
   onMouseLeave?: () => void;
   isDimmed?: boolean;
@@ -16,6 +17,7 @@ interface LotteryCardProps {
 export const LotteryCard: React.FC<LotteryCardProps> = ({ 
   ticket, 
   onClick, 
+  onEdit,
   onMouseEnter, 
   onMouseLeave,
   isDimmed,
@@ -28,6 +30,11 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
   const handleFlip = (e: React.MouseEvent) => {
     e.stopPropagation();
     setShowBack(!showBack);
+  };
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    onEdit?.(ticket);
   };
 
   return (
@@ -78,6 +85,26 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
           </div>
         )}
 
+        <div className="absolute top-1.5 right-1.5 md:opacity-0 group-hover:opacity-100 transition-opacity flex flex-col gap-1.5">
+          {!ticket.isFavorite && (
+            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm self-end ${
+              ticket.state === 'Amostra' ? 'bg-amber-500' : 
+              ticket.state === 'Specimen' ? 'bg-indigo-500' : 
+              ticket.state.includes('cs') ? 'bg-rose-400' : 'bg-emerald-500'
+            }`}>
+              {ticket.state.split(' ')[0]}
+            </span>
+          )}
+          
+          <button 
+            onClick={handleEdit}
+            className="p-1.5 bg-white/90 backdrop-blur-sm rounded-full shadow-md text-indigo-600 hover:bg-indigo-600 hover:text-white transition-all self-end"
+            title="Editar Registo"
+          >
+            <Edit2 size={12} />
+          </button>
+        </div>
+
         {hasBack && (
           <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1.5">
              <button 
@@ -90,18 +117,6 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
                 </span>
                 <FlipHorizontal size={10} className="text-indigo-400 group-hover/flip:text-indigo-600 transition-colors" />
              </button>
-          </div>
-        )}
-
-        {!ticket.isFavorite && (
-          <div className="absolute top-1.5 right-1.5 pointer-events-none">
-            <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm ${
-              ticket.state === 'Amostra' ? 'bg-amber-500' : 
-              ticket.state === 'Specimen' ? 'bg-indigo-500' : 
-              ticket.state.includes('cs') ? 'bg-rose-400' : 'bg-emerald-500'
-            }`}>
-              {ticket.state.split(' ')[0]}
-            </span>
           </div>
         )}
       </div>

@@ -23,6 +23,7 @@ const App: React.FC = () => {
   const [continentFilter, setContinentFilter] = useState<string>('Todos');
   const [countryFilter, setCountryFilter] = useState<string>('Todos');
   const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
+  const [editingTicket, setEditingTicket] = useState<LotteryTicket | null>(null);
   const [hoveredTicket, setHoveredTicket] = useState<LotteryTicket | null>(null);
   const [showOnlyDuplicates, setShowOnlyDuplicates] = useState(false);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
@@ -38,7 +39,7 @@ const App: React.FC = () => {
   
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Função para "guardar" as imagens que o Jorge enviou se o banco estiver vazio
+  // Função para "guardar" as imagens iniciais
   const seedInitialData = async () => {
     const initialTickets: LotteryTicket[] = [
       {
@@ -53,7 +54,7 @@ const App: React.FC = () => {
         state: TicketState.UNCIRCULATED,
         type: 'Lotaria Estatal (60º Aniversário)',
         entity: 'República Popular da Mongólia',
-        frontImageUrl: 'https://images.unsplash.com/photo-1599408162449-41ca164e287a?q=80&w=1000&auto=format&fit=crop', // Placeholder representativo da estética
+        frontImageUrl: 'https://images.unsplash.com/photo-1599408162449-41ca164e287a?q=80&w=1000&auto=format&fit=crop',
         notes: 'Peça rara com estética socialista. Celebra os 60 anos da revolução. Jorge: "Deu muito trabalho a conseguir".',
         createdAt: Date.now(),
         isFavorite: true
@@ -70,7 +71,7 @@ const App: React.FC = () => {
         state: TicketState.UNCIRCULATED,
         type: 'Lotaria Comemorativa (1000 Anos de Kazan)',
         entity: 'Ministério das Finanças da RF',
-        frontImageUrl: 'https://images.unsplash.com/photo-1555620245-7360098f98ec?q=80&w=1000&auto=format&fit=crop', // Placeholder representativo da estética
+        frontImageUrl: 'https://images.unsplash.com/photo-1555620245-7360098f98ec?q=80&w=1000&auto=format&fit=crop',
         notes: 'Bilhete especial dos 1000 anos de Kazan. Jorge: "Peça que gosto muito".',
         createdAt: Date.now(),
         isFavorite: true
@@ -87,14 +88,10 @@ const App: React.FC = () => {
     const loadData = async () => {
       try {
         let savedTickets = await getAllTicketsDB();
-        
-        // Se for a primeira vez do Jorge, guardamos as imagens especiais
         if (savedTickets.length === 0) {
           savedTickets = await seedInitialData();
         }
-        
         setTickets(savedTickets);
-
         const savedProfile = localStorage.getItem('collector_profile');
         if (savedProfile) {
           setCollector(JSON.parse(savedProfile));
@@ -124,7 +121,12 @@ const App: React.FC = () => {
     }
   };
 
-  // Resto da lógica do componente...
+  const handleEditTicket = (ticket: LotteryTicket) => {
+    setEditingTicket(ticket);
+    setSelectedTicket(null);
+    setView('add');
+  };
+
   const duplicateIds = useMemo(() => {
     const ids = new Set<string>();
     const groups: Record<string, string[]> = {};
@@ -181,13 +183,20 @@ const App: React.FC = () => {
   }, [tickets, searchTerm, continentFilter, countryFilter, showOnlyDuplicates, showOnlyFavorites, duplicateIds]);
 
   const handleSaveTicket = async (ticketData: Partial<LotteryTicket>) => {
-    const newTicket: LotteryTicket = {
-      ...ticketData as LotteryTicket,
-      id: crypto.randomUUID(),
-      createdAt: Date.now(),
-    };
-    await saveTicketDB(newTicket);
-    setTickets(prev => [...prev, newTicket]);
+    if (editingTicket) {
+      const updatedTicket = { ...editingTicket, ...ticketData } as LotteryTicket;
+      await saveTicketDB(updatedTicket);
+      setTickets(prev => prev.map(t => t.id === updatedTicket.id ? updatedTicket : t));
+      setEditingTicket(null);
+    } else {
+      const newTicket: LotteryTicket = {
+        ...ticketData as LotteryTicket,
+        id: crypto.randomUUID(),
+        createdAt: Date.now(),
+      };
+      await saveTicketDB(newTicket);
+      setTickets(prev => [...prev, newTicket]);
+    }
     setView('gallery');
   };
 
@@ -228,6 +237,7 @@ const App: React.FC = () => {
           ticket={selectedTicket} 
           onClose={() => setSelectedTicket(null)} 
           onDelete={() => handleDeleteTicket(selectedTicket.id)}
+          onEdit={handleEditTicket}
           onResearch={handleResearch}
         />
       )}
@@ -249,7 +259,7 @@ const App: React.FC = () => {
               <button onClick={() => setView('gallery')} className={`p-2 rounded-md ${view === 'gallery' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}><Globe size={16} /></button>
               <button onClick={() => setView('stats')} className={`p-2 rounded-md ${view === 'stats' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500'}`}><BarChart3 size={16} /></button>
             </div>
-            <Button variant="secondary" size="sm" onClick={() => setView('add')}><Plus size={14} className="mr-1.5" /> Novo</Button>
+            <Button variant="secondary" size="sm" onClick={() => {setEditingTicket(null); setView('add');}}><Plus size={14} className="mr-1.5" /> Novo</Button>
             <button onClick={() => setIsLoggedIn(false)} className="p-2 text-slate-400 hover:text-rose-500"><LogOut size={18} /></button>
           </div>
         </div>
@@ -276,13 +286,26 @@ const App: React.FC = () => {
               )}
             </div>
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4">
-              {filteredTickets.map(ticket => <LotteryCard key={ticket.id} ticket={ticket} onClick={setSelectedTicket} isPotentialDuplicate={duplicateIds.has(ticket.id)} />)}
+              {filteredTickets.map(ticket => (
+                <LotteryCard 
+                  key={ticket.id} 
+                  ticket={ticket} 
+                  onClick={setSelectedTicket} 
+                  onEdit={handleEditTicket}
+                  isPotentialDuplicate={duplicateIds.has(ticket.id)} 
+                />
+              ))}
             </div>
           </div>
         ) : view === 'stats' ? (
           <StatsDashboard tickets={tickets} />
         ) : (
-          <LotteryForm onSave={handleSaveTicket} onCancel={() => setView('gallery')} ticketCount={tickets.length} />
+          <LotteryForm 
+            onSave={handleSaveTicket} 
+            onCancel={() => {setView('gallery'); setEditingTicket(null);}} 
+            ticketCount={tickets.length} 
+            initialData={editingTicket}
+          />
         )}
       </main>
 
