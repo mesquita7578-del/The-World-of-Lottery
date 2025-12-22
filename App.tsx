@@ -6,7 +6,7 @@ import { LotteryForm } from './components/LotteryForm';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
 import { Button } from './components/Button';
-import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck, Sparkles } from 'lucide-react';
+import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck, Sparkles, AlertCircle } from 'lucide-react';
 import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
 
 interface CollectorProfile {
@@ -21,6 +21,7 @@ const App: React.FC = () => {
   const [continentFilter, setContinentFilter] = useState<string>('Todos');
   const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
   const [hoveredTicket, setHoveredTicket] = useState<LotteryTicket | null>(null);
+  const [showOnlyDuplicates, setShowOnlyDuplicates] = useState(false);
   
   const [collector, setCollector] = useState<CollectorProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -51,6 +52,27 @@ const App: React.FC = () => {
     };
     loadData();
   }, []);
+
+  // Lógica para identificar IDs que são potenciais duplicados
+  const duplicateIds = useMemo(() => {
+    const ids = new Set<string>();
+    const groups: Record<string, string[]> = {};
+
+    tickets.forEach(t => {
+      // Chave baseada em país, data, valor e número de extração (normalizada)
+      const key = `${t.country}|${t.drawDate}|${t.value}|${t.extractionNo}`.toLowerCase().replace(/\s+/g, '');
+      if (!groups[key]) groups[key] = [];
+      groups[key].push(t.id);
+    });
+
+    Object.values(groups).forEach(group => {
+      if (group.length > 1) {
+        group.forEach(id => ids.add(id));
+      }
+    });
+
+    return ids;
+  }, [tickets]);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -89,15 +111,16 @@ const App: React.FC = () => {
         t.autoId.toLowerCase().includes(searchTerm.toLowerCase());
       
       const matchesContinent = continentFilter === 'Todos' || t.continent === continentFilter;
+      const matchesDuplicateFilter = !showOnlyDuplicates || duplicateIds.has(t.id);
       
-      return matchesSearch && matchesContinent;
+      return matchesSearch && matchesContinent && matchesDuplicateFilter;
     }).sort((a, b) => {
       return a.extractionNo.localeCompare(b.extractionNo, undefined, { 
         numeric: true, 
         sensitivity: 'base' 
       });
     });
-  }, [tickets, searchTerm, continentFilter]);
+  }, [tickets, searchTerm, continentFilter, showOnlyDuplicates, duplicateIds]);
 
   const handleSaveTicket = async (ticketData: Partial<LotteryTicket>) => {
     const newTicket: LotteryTicket = {
@@ -286,14 +309,26 @@ const App: React.FC = () => {
                 {continents.map(c => (
                   <button
                     key={c}
-                    onClick={() => setContinentFilter(c)}
+                    onClick={() => {setContinentFilter(c); setShowOnlyDuplicates(false)}}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
-                      continentFilter === c ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      continentFilter === c && !showOnlyDuplicates ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {c}
                   </button>
                 ))}
+                
+                {duplicateIds.size > 0 && (
+                   <button
+                     onClick={() => {setShowOnlyDuplicates(!showOnlyDuplicates); setContinentFilter('Todos')}}
+                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors flex items-center gap-1.5 ${
+                       showOnlyDuplicates ? 'bg-rose-600 text-white' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
+                     }`}
+                   >
+                     <AlertCircle size={12} />
+                     Duplicados ({duplicateIds.size})
+                   </button>
+                )}
               </div>
             </div>
 
@@ -316,6 +351,7 @@ const App: React.FC = () => {
                       ticket.country !== hoveredTicket.country && 
                       ticket.type !== hoveredTicket.type
                     }
+                    isPotentialDuplicate={duplicateIds.has(ticket.id)}
                   />
                 ))}
               </div>

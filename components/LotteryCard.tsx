@@ -1,7 +1,7 @@
 
 import React, { useState } from 'react';
 import { LotteryTicket } from '../types';
-import { Maximize2, Layers, MapPin, Calendar, FlipHorizontal } from 'lucide-react';
+import { Maximize2, MapPin, Calendar, FlipHorizontal, AlertTriangle } from 'lucide-react';
 
 interface LotteryCardProps {
   ticket: LotteryTicket;
@@ -10,6 +10,7 @@ interface LotteryCardProps {
   onMouseLeave?: () => void;
   isDimmed?: boolean;
   isHighlighted?: boolean;
+  isPotentialDuplicate?: boolean;
 }
 
 export const LotteryCard: React.FC<LotteryCardProps> = ({ 
@@ -18,7 +19,8 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
   onMouseEnter, 
   onMouseLeave,
   isDimmed,
-  isHighlighted 
+  isHighlighted,
+  isPotentialDuplicate
 }) => {
   const [showBack, setShowBack] = useState(false);
   const hasBack = !!ticket.backImageUrl;
@@ -33,6 +35,7 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
       className={`group bg-white rounded-lg shadow-sm transition-all duration-300 border border-slate-100 overflow-hidden relative
         ${isDimmed ? 'opacity-30 grayscale-[0.5] scale-[0.98]' : 'opacity-100 grayscale-0'}
         ${isHighlighted ? 'ring-2 ring-indigo-500 shadow-lg z-10 scale-[1.02]' : 'z-0'}
+        ${isPotentialDuplicate ? 'border-rose-200' : ''}
       `}
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
@@ -56,6 +59,15 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
             {ticket.autoId}
           </span>
         </div>
+
+        {isPotentialDuplicate && (
+          <div className="absolute top-1.5 left-1/2 -translate-x-1/2 pointer-events-none">
+             <div className="bg-rose-500 text-white px-2 py-0.5 rounded-full shadow-lg flex items-center gap-1 animate-bounce">
+                <AlertTriangle size={10} />
+                <span className="text-[8px] font-black uppercase tracking-tighter">Possível Duplicado</span>
+             </div>
+          </div>
+        )}
 
         {hasBack && (
           <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1.5">
