@@ -15,8 +15,8 @@ export enum TicketState {
 }
 
 export interface LotteryTicket {
-  id: string; // Internal UUID
-  autoId: string; // The generated ID (e.g., PT-001)
+  id: string; 
+  autoId: string; 
   extractionNo: string;
   dimensions: string;
   drawDate: string;
@@ -26,7 +26,8 @@ export interface LotteryTicket {
   state: TicketState;
   type: string;
   entity: string;
-  imageUrl: string;
+  frontImageUrl: string;
+  backImageUrl?: string;
   notes?: string;
   createdAt: number;
 }

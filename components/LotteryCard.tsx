@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { LotteryTicket } from '../types';
-import { Maximize2 } from 'lucide-react';
+import { Maximize2, Layers } from 'lucide-react';
 
 interface LotteryCardProps {
   ticket: LotteryTicket;
@@ -18,7 +18,7 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({ ticket, onClick }) => 
         onClick={() => onClick?.(ticket)}
       >
         <img 
-          src={ticket.imageUrl} 
+          src={ticket.frontImageUrl} 
           alt={ticket.extractionNo}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
@@ -33,6 +33,15 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({ ticket, onClick }) => 
             {ticket.autoId}
           </span>
         </div>
+
+        {ticket.backImageUrl && (
+          <div className="absolute bottom-1.5 right-1.5 pointer-events-none">
+             <div className="p-1 bg-white/60 backdrop-blur-sm rounded-full shadow-sm">
+                <Layers size={10} className="text-indigo-600" />
+             </div>
+          </div>
+        )}
+
         <div className="absolute top-1.5 right-1.5 pointer-events-none">
           <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold text-white shadow-sm ${
             ticket.state === 'Amostra' ? 'bg-amber-500' : 

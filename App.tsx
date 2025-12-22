@@ -6,7 +6,7 @@ import { LotteryForm } from './components/LotteryForm';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
 import { Button } from './components/Button';
-import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck } from 'lucide-react';
+import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck, Sparkles } from 'lucide-react';
 import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
 
 interface CollectorProfile {
@@ -57,7 +57,7 @@ const App: React.FC = () => {
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
     if (!authForm.name || !authForm.password) {
-      setAuthError('Please fill in all fields');
+      setAuthError('Por favor, preencha todos os campos.');
       return;
     }
     const profile = { name: authForm.name, password: authForm.password };
@@ -73,7 +73,7 @@ const App: React.FC = () => {
       setIsLoggedIn(true);
       setAuthError('');
     } else {
-      setAuthError('Invalid password');
+      setAuthError('Senha inválida.');
     }
   };
 
@@ -112,18 +112,18 @@ const App: React.FC = () => {
       setTickets(prev => [newTicket, ...prev]);
       setView('gallery');
     } catch (err) {
-      alert("Failed to save to database.");
+      alert("Falha ao guardar na base de dados.");
     }
   };
 
   const handleDeleteTicket = async (id: string) => {
-    if (confirm("Are you sure you want to delete this ticket from the archive?")) {
+    if (confirm("Tens a certeza que desejas eliminar este bilhete do arquivo, Jorge?")) {
       try {
         await deleteTicketDB(id);
         setTickets(prev => prev.filter(t => t.id !== id));
         setSelectedTicket(null);
       } catch (err) {
-        alert("Failed to delete from database.");
+        alert("Falha ao eliminar da base de dados.");
       }
     }
   };
@@ -142,19 +142,19 @@ const App: React.FC = () => {
             </div>
             <h1 className="text-2xl font-serif font-bold text-center text-slate-900 mb-2">The World of Lottery</h1>
             <p className="text-slate-500 text-center text-sm mb-8">
-              {authMode === 'register' ? 'Register as a Collector' : 'Access your Private Archive'}
+              {authMode === 'register' ? 'Registe-se como Colecionador' : 'Aceda ao seu Arquivo Privado'}
             </p>
 
             <form onSubmit={authMode === 'register' ? handleRegister : handleLogin} className="space-y-4">
               {authMode === 'register' && (
                 <div>
-                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Collector Name</label>
+                  <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Nome do Colecionador</label>
                   <div className="relative">
                     <User className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
                       type="text" 
                       className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
-                      placeholder="Your Name"
+                      placeholder="Ex: Jorge"
                       value={authForm.name}
                       onChange={e => setAuthForm({ ...authForm, name: e.target.value })}
                     />
@@ -163,7 +163,7 @@ const App: React.FC = () => {
               )}
               
               <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Access Password</label>
+                <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Senha de Acesso</label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                   <input 
@@ -181,7 +181,7 @@ const App: React.FC = () => {
               )}
 
               <Button type="submit" className="w-full" size="lg">
-                {authMode === 'register' ? 'Register Collector' : 'Unlock Archive'}
+                {authMode === 'register' ? 'Criar Perfil' : 'Desbloquear Arquivo'}
               </Button>
               
               {collector && (
@@ -190,14 +190,14 @@ const App: React.FC = () => {
                   onClick={() => setAuthMode(authMode === 'login' ? 'register' : 'login')}
                   className="w-full text-center text-xs text-indigo-600 font-bold hover:underline mt-4"
                 >
-                  {authMode === 'login' ? 'Create New Profile' : 'Back to Login'}
+                  {authMode === 'login' ? 'Criar Novo Perfil' : 'Voltar ao Login'}
                 </button>
               )}
             </form>
           </div>
           <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center items-center gap-2">
             <ShieldCheck size={14} className="text-emerald-500" />
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">IndexedDB Storage Enabled (20k+ Capacity)</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Capacidade para 20k+ Imagens (IndexedDB)</span>
           </div>
         </div>
       </div>
@@ -222,10 +222,17 @@ const App: React.FC = () => {
             </div>
             <div>
               <h1 className="text-lg md:text-xl font-serif font-bold text-slate-900 leading-tight">The World of Lottery</h1>
-              <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase flex items-center gap-1">
-                <User size={10} className="text-indigo-500" />
-                Archive of {collector?.name}
-              </p>
+              <div className="flex items-center gap-2">
+                <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase flex items-center gap-1">
+                  <User size={10} className="text-indigo-500" />
+                  Arquivo de {collector?.name}
+                </p>
+                <div className="h-1 w-1 rounded-full bg-slate-300"></div>
+                <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wide flex items-center gap-1">
+                  <Sparkles size={10} />
+                  Assistente Gemini Online
+                </p>
+              </div>
             </div>
           </div>
 
@@ -234,23 +241,23 @@ const App: React.FC = () => {
               <button 
                 onClick={() => setView('gallery')}
                 className={`p-2 rounded-md transition-all ${view === 'gallery' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                title="Gallery View"
+                title="Galeria"
               >
                 <Globe size={16} />
               </button>
               <button 
                 onClick={() => setView('stats')}
                 className={`p-2 rounded-md transition-all ${view === 'stats' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                title="Statistics"
+                title="Estatísticas"
               >
                 <BarChart3 size={16} />
               </button>
             </div>
             <Button variant="secondary" size="sm" onClick={() => setView('add')} className="h-9">
               <Plus size={14} className="mr-1.5" />
-              Add Item
+              Adicionar Bilhete
             </Button>
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Logout">
+            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Sair">
               <LogOut size={18} />
             </button>
           </div>
@@ -261,7 +268,7 @@ const App: React.FC = () => {
         {!isLoaded ? (
           <div className="flex flex-col items-center justify-center py-20">
              <div className="animate-spin h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full mb-4"></div>
-             <p className="text-slate-500 font-medium">Accessing Archive Database...</p>
+             <p className="text-slate-500 font-medium">A aceder à Base de Dados, Jorge...</p>
           </div>
         ) : view === 'gallery' ? (
           <div className="space-y-6">
@@ -270,7 +277,7 @@ const App: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input 
                   type="text" 
-                  placeholder="Search archive..."
+                  placeholder="Pesquisar no arquivo..."
                   className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
@@ -301,17 +308,17 @@ const App: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <Archive className="h-12 w-12 text-slate-200 mb-4" />
-                <h3 className="text-lg font-bold text-slate-600">No items found</h3>
-                <p className="text-slate-400 mt-1 text-sm text-center">Your collection is empty or filters are too strict.</p>
+                <h3 className="text-lg font-bold text-slate-600">Arquivo Vazio</h3>
+                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, comece a adicionar a sua coleção clicando em "Adicionar Bilhete".</p>
                 <Button variant="outline" className="mt-6" size="sm" onClick={() => setView('add')}>
-                  Add your first ticket
+                  Adicionar o primeiro bilhete
                 </Button>
               </div>
             )}
           </div>
         ) : view === 'stats' ? (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-800">Archive Insights ({tickets.length} items)</h2>
+            <h2 className="text-xl font-bold text-slate-800">Insights da Coleção ({tickets.length} itens)</h2>
             <StatsDashboard tickets={tickets} />
           </div>
         ) : (
@@ -322,7 +329,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-white border-t border-slate-200 py-6 text-center mt-auto">
-        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()}</p>
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()} • Assistente Digital Gemini</p>
       </footer>
     </div>
   );
