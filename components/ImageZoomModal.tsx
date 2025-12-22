@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { X, Download, Trash2, FlipHorizontal, Square, AlignLeft, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Download, Trash2, FlipHorizontal, AlignLeft, ZoomIn, ZoomOut } from 'lucide-react';
 import { LotteryTicket } from '../types';
 
 interface ImageZoomModalProps {
@@ -16,135 +16,123 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/95 backdrop-blur-md p-2 md:p-6 animate-in fade-in duration-300"
+      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 md:p-8 animate-in fade-in duration-300"
       onClick={onClose}
     >
       <div 
-        className="relative w-full h-full max-w-7xl flex flex-col items-center gap-4"
+        className="relative w-full h-full max-w-6xl flex flex-col items-center justify-between gap-6"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Header/Actions */}
-        <div className="w-full flex justify-between items-center text-white pt-2 px-2 md:px-0">
+        {/* Cabeçalho de Ações */}
+        <div className="w-full flex justify-between items-start text-white">
           <div className="flex flex-col">
-            <h2 className="text-lg md:text-xl font-serif font-bold leading-tight">{ticket.entity}</h2>
-            <p className="text-[10px] md:text-xs text-slate-400 font-mono tracking-wider">
-              ID: {ticket.autoId} • EXTRAÇÃO: #{ticket.extractionNo} • {ticket.country.toUpperCase()}
+            <h2 className="text-xl md:text-2xl font-serif font-bold leading-tight text-indigo-100">{ticket.entity}</h2>
+            <p className="text-[10px] md:text-xs text-slate-400 font-mono tracking-widest mt-1">
+              {ticket.country.toUpperCase()} • {ticket.autoId} • #{ticket.extractionNo}
             </p>
           </div>
           
-          <div className="flex items-center gap-1 md:gap-3">
+          <div className="flex items-center gap-2">
             {ticket.backImageUrl && (
               <button 
                 onClick={() => setSide(side === 'front' ? 'back' : 'front')}
-                className="flex items-center gap-2 px-3 md:px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-full text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-indigo-500/20"
+                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg"
               >
                 <FlipHorizontal size={14} />
-                <span className="hidden sm:inline">Ver {side === 'front' ? 'Verso' : 'Frente'}</span>
-                <span className="sm:hidden">{side === 'front' ? 'Verso' : 'Frente'}</span>
+                <span>{side === 'front' ? 'Ver Verso' : 'Ver Frente'}</span>
               </button>
             )}
             
-            <div className="w-px h-6 bg-white/10 mx-1 hidden sm:block"></div>
-            
             <button 
               onClick={() => setIsZoomed(!isZoomed)}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
-              title={isZoomed ? "Ajustar ao Quadro" : "Zoom Real"}
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-300"
+              title={isZoomed ? "Reduzir" : "Ampliar"}
             >
-              {isZoomed ? <ZoomOut size={22} /> : <ZoomIn size={22} />}
-            </button>
-
-            <button 
-              onClick={() => {
-                const link = document.createElement('a');
-                link.href = currentImage;
-                link.download = `lottery-${ticket.autoId}-${side}.png`;
-                link.click();
-              }}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-300 hover:text-white"
-              title="Download"
-            >
-              <Download size={22} />
-            </button>
-
-            <button 
-              onClick={onDelete}
-              className="p-2 hover:bg-rose-500/20 text-rose-400 hover:text-rose-500 rounded-full transition-colors group"
-              title="Eliminar"
-            >
-              <Trash2 size={22} />
+              {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
             </button>
 
             <button 
               onClick={onClose}
-              className="p-2 hover:bg-white/10 rounded-full transition-colors text-white"
-              title="Fechar"
+              className="p-2 hover:bg-white/10 rounded-lg transition-colors text-white ml-2"
             >
-              <X size={28} />
+              <X size={24} />
             </button>
           </div>
         </div>
 
-        {/* Image Display Area - Adjusted to vision frame */}
+        {/* Área da Imagem - Agora com Redução */}
         <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden">
           <div 
-            className={`relative transition-all duration-500 ease-out flex items-center justify-center
-              ${isZoomed ? 'w-auto h-auto cursor-zoom-out' : 'w-full h-full cursor-zoom-in'}
+            className={`relative transition-all duration-500 ease-in-out flex items-center justify-center
+              ${isZoomed ? 'w-full h-full' : 'w-auto h-auto'}
             `}
             onClick={() => setIsZoomed(!isZoomed)}
           >
             <img 
               src={currentImage} 
               alt={ticket.entity} 
-              className={`max-w-full transition-all duration-500 select-none shadow-2xl rounded-sm
-                ${isZoomed ? 'scale-125 md:scale-150 shadow-indigo-500/10' : 'max-h-[75vh] object-contain'}
+              className={`transition-all duration-500 select-none shadow-2xl rounded-sm border border-white/5
+                ${isZoomed ? 'max-h-[85vh] scale-100' : 'max-h-[50vh] scale-95 hover:scale-100 cursor-zoom-in'}
+                object-contain
               `}
             />
             
-            {/* Indicator of current side */}
-            <div className="absolute top-4 left-4 pointer-events-none">
-               <div className="flex items-center gap-2 px-3 py-1.5 bg-black/60 backdrop-blur-md rounded-lg border border-white/10 shadow-xl">
-                 <div className={`w-2 h-2 rounded-full ${side === 'front' ? 'bg-indigo-400' : 'bg-amber-400'} animate-pulse`}></div>
-                 <span className="text-[10px] font-black text-white uppercase tracking-widest">
-                   {side === 'front' ? 'Frente' : 'Verso'}
-                 </span>
-               </div>
-            </div>
+            {/* Indicador de Lado */}
+            {!isZoomed && (
+              <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
+                <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap">
+                  Vista de {side === 'front' ? 'Frente' : 'Verso'}
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Footer Info - Always visible but compact */}
-        <div className="w-full max-w-4xl pb-4 animate-in slide-in-from-bottom-4 duration-500 px-2 md:px-0">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white shadow-2xl">
-            <div className="space-y-0.5">
-              <span className="block text-slate-500 text-[9px] font-black uppercase tracking-widest">País</span>
-              <span className="text-xs md:text-sm font-semibold text-indigo-200">{ticket.country}</span>
+        {/* Painel de Informações Inferior */}
+        <div className="w-full max-w-3xl space-y-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-slate-900/50 backdrop-blur-sm p-4 rounded-xl border border-white/10 text-white">
+            <div className="space-y-1">
+              <span className="block text-slate-500 text-[8px] font-black uppercase tracking-widest">Sorteio</span>
+              <span className="text-xs font-semibold">{ticket.drawDate || '---'}</span>
             </div>
-            <div className="space-y-0.5">
-              <span className="block text-slate-500 text-[9px] font-black uppercase tracking-widest">Sorteio</span>
-              <span className="text-xs md:text-sm font-semibold">{ticket.drawDate || 'Data Não Registada'}</span>
+            <div className="space-y-1">
+              <span className="block text-slate-500 text-[8px] font-black uppercase tracking-widest">Valor</span>
+              <span className="text-xs font-semibold text-amber-400">{ticket.value}</span>
             </div>
-            <div className="space-y-0.5">
-              <span className="block text-slate-500 text-[9px] font-black uppercase tracking-widest">Valor</span>
-              <span className="text-xs md:text-sm font-semibold text-amber-300">{ticket.value}</span>
+            <div className="space-y-1">
+              <span className="block text-slate-500 text-[8px] font-black uppercase tracking-widest">Estado</span>
+              <span className="text-xs font-semibold text-indigo-300">{ticket.state}</span>
             </div>
-            <div className="space-y-0.5">
-              <span className="block text-slate-500 text-[9px] font-black uppercase tracking-widest">Medidas</span>
-              <span className="text-xs md:text-sm font-semibold text-slate-300">{ticket.dimensions || 'N/A'}</span>
+            <div className="space-y-1">
+              <span className="block text-slate-500 text-[8px] font-black uppercase tracking-widest">Medidas</span>
+              <span className="text-xs font-semibold text-slate-400">{ticket.dimensions || 'N/A'}</span>
             </div>
           </div>
 
-          {ticket.notes && (
-            <div className="mt-3 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 text-white">
-              <div className="flex items-center gap-2 mb-1.5">
-                <AlignLeft size={14} className="text-indigo-400" />
-                <span className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Notas do Colecionador</span>
-              </div>
-              <p className="text-xs md:text-sm text-slate-200 leading-relaxed italic font-light">
-                {ticket.notes}
-              </p>
+          <div className="flex items-center justify-between px-2">
+            <div className="flex gap-4">
+              <button 
+                onClick={onDelete}
+                className="flex items-center gap-2 text-rose-400 hover:text-rose-300 text-[10px] font-bold uppercase tracking-wider transition-colors"
+              >
+                <Trash2 size={14} />
+                Eliminar Registo
+              </button>
+              <button 
+                onClick={() => {
+                  const link = document.createElement('a');
+                  link.href = currentImage;
+                  link.download = `lottery-${ticket.autoId}.png`;
+                  link.click();
+                }}
+                className="flex items-center gap-2 text-slate-400 hover:text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
+              >
+                <Download size={14} />
+                Descarregar Imagem
+              </button>
             </div>
-          )}
+            <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Arquivo Particular Jorge</p>
+          </div>
         </div>
       </div>
     </div>
