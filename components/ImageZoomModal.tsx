@@ -1,14 +1,15 @@
 
 import React from 'react';
-import { X, Download, Maximize2 } from 'lucide-react';
+import { X, Download, Trash2 } from 'lucide-react';
 import { LotteryTicket } from '../types';
 
 interface ImageZoomModalProps {
   ticket: LotteryTicket;
   onClose: () => void;
+  onDelete: () => void;
 }
 
-export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose }) => {
+export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose, onDelete }) => {
   return (
     <div 
       className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/90 backdrop-blur-sm p-4 md:p-10 animate-in fade-in duration-200"
@@ -24,7 +25,15 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose 
             <h2 className="text-lg font-bold leading-tight">{ticket.entity}</h2>
             <p className="text-xs text-slate-400 font-mono">ID: {ticket.autoId} • Extraction: #{ticket.extractionNo}</p>
           </div>
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 md:gap-3">
+            <button 
+              onClick={onDelete}
+              className="p-2 hover:bg-rose-500/20 text-rose-400 hover:text-rose-500 rounded-full transition-colors group"
+              title="Delete Archive Entry"
+            >
+              <Trash2 size={20} className="group-active:scale-90 transition-transform" />
+            </button>
+            <div className="w-px h-6 bg-white/10 mx-1"></div>
             <button 
               onClick={() => {
                 const link = document.createElement('a');
@@ -52,7 +61,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose 
           <img 
             src={ticket.imageUrl} 
             alt={ticket.entity} 
-            className="max-w-full max-h-[80vh] object-contain select-none cursor-zoom-out"
+            className="max-w-full max-h-[75vh] object-contain select-none cursor-zoom-out"
             onClick={onClose}
           />
         </div>

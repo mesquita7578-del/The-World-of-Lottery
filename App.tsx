@@ -7,6 +7,7 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
 import { Button } from './components/Button';
 import { Search, Plus, Archive, BarChart3, Globe, Filter, Lock, User, LogOut, ShieldCheck } from 'lucide-react';
+import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
 
 interface CollectorProfile {
   name: string;
@@ -30,30 +31,28 @@ const App: React.FC = () => {
   
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from localStorage on mount
+  // Load from DB on mount
   useEffect(() => {
-    const savedTickets = localStorage.getItem('lottery_collection');
-    if (savedTickets) {
-      setTickets(JSON.parse(savedTickets));
-    }
+    const loadData = async () => {
+      try {
+        const savedTickets = await getAllTicketsDB();
+        setTickets(savedTickets);
 
-    const savedProfile = localStorage.getItem('collector_profile');
-    if (savedProfile) {
-      setCollector(JSON.parse(savedProfile));
-      setAuthMode('login');
-    } else {
-      setAuthMode('register');
-    }
-    
-    setIsLoaded(true);
+        const savedProfile = localStorage.getItem('collector_profile');
+        if (savedProfile) {
+          setCollector(JSON.parse(savedProfile));
+          setAuthMode('login');
+        } else {
+          setAuthMode('register');
+        }
+      } catch (err) {
+        console.error("Failed to load archive:", err);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+    loadData();
   }, []);
-
-  // Save to localStorage on change
-  useEffect(() => {
-    if (isLoaded) {
-      localStorage.setItem('lottery_collection', JSON.stringify(tickets));
-    }
-  }, [tickets, isLoaded]);
 
   const handleRegister = (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,8 +94,6 @@ const App: React.FC = () => {
       
       return matchesSearch && matchesContinent;
     }).sort((a, b) => {
-      // Sort by Extraction Number (numeric natural sort)
-      // This ensures that "Game 2" comes before "Game 10"
       return a.extractionNo.localeCompare(b.extractionNo, undefined, { 
         numeric: true, 
         sensitivity: 'base' 
@@ -104,19 +101,35 @@ const App: React.FC = () => {
     });
   }, [tickets, searchTerm, continentFilter]);
 
-  const handleSaveTicket = (ticketData: Partial<LotteryTicket>) => {
+  const handleSaveTicket = async (ticketData: Partial<LotteryTicket>) => {
     const newTicket: LotteryTicket = {
       ...ticketData as LotteryTicket,
       id: crypto.randomUUID(),
       createdAt: Date.now(),
     };
-    setTickets(prev => [newTicket, ...prev]);
-    setView('gallery');
+    try {
+      await saveTicketDB(newTicket);
+      setTickets(prev => [newTicket, ...prev]);
+      setView('gallery');
+    } catch (err) {
+      alert("Failed to save to database.");
+    }
+  };
+
+  const handleDeleteTicket = async (id: string) => {
+    if (confirm("Are you sure you want to delete this ticket from the archive?")) {
+      try {
+        await deleteTicketDB(id);
+        setTickets(prev => prev.filter(t => t.id !== id));
+        setSelectedTicket(null);
+      } catch (err) {
+        alert("Failed to delete from database.");
+      }
+    }
   };
 
   const continents = ['All', ...Object.values(Continent)];
 
-  // Authentication View
   if (!isLoggedIn) {
     return (
       <div className="min-h-screen bg-slate-100 flex items-center justify-center p-4">
@@ -184,25 +197,23 @@ const App: React.FC = () => {
           </div>
           <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center items-center gap-2">
             <ShieldCheck size={14} className="text-emerald-500" />
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">End-to-End Encrypted Storage</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">IndexedDB Storage Enabled (20k+ Capacity)</span>
           </div>
         </div>
       </div>
     );
   }
 
-  // Main App View
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col">
-      {/* Zoom Modal Overlay */}
       {selectedTicket && (
         <ImageZoomModal 
           ticket={selectedTicket} 
           onClose={() => setSelectedTicket(null)} 
+          onDelete={() => handleDeleteTicket(selectedTicket.id)}
         />
       )}
 
-      {/* Top Header */}
       <header className="bg-white border-b border-slate-200 sticky top-0 z-40 px-4 py-3 md:px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -235,31 +246,25 @@ const App: React.FC = () => {
                 <BarChart3 size={16} />
               </button>
             </div>
-            <Button 
-              variant="secondary" 
-              size="sm" 
-              onClick={() => setView('add')}
-              className="h-9"
-            >
+            <Button variant="secondary" size="sm" onClick={() => setView('add')} className="h-9">
               <Plus size={14} className="mr-1.5" />
               Add Item
             </Button>
-            <button 
-              onClick={handleLogout}
-              className="p-2 text-slate-400 hover:text-rose-500 transition-colors"
-              title="Logout"
-            >
+            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Logout">
               <LogOut size={18} />
             </button>
           </div>
         </div>
       </header>
 
-      {/* Main Content Area */}
       <main className="flex-1 max-w-7xl mx-auto w-full px-4 py-6 md:px-8">
-        {view === 'gallery' && (
+        {!isLoaded ? (
+          <div className="flex flex-col items-center justify-center py-20">
+             <div className="animate-spin h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full mb-4"></div>
+             <p className="text-slate-500 font-medium">Accessing Archive Database...</p>
+          </div>
+        ) : view === 'gallery' ? (
           <div className="space-y-6">
-            {/* Search & Filters */}
             <div className="flex flex-col md:flex-row gap-4 items-center bg-white p-3 rounded-xl shadow-sm border border-slate-200">
               <div className="relative flex-1 w-full">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
@@ -278,9 +283,7 @@ const App: React.FC = () => {
                     key={c}
                     onClick={() => setContinentFilter(c)}
                     className={`px-2.5 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-colors ${
-                      continentFilter === c 
-                        ? 'bg-indigo-600 text-white' 
-                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                      continentFilter === c ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
                     {c}
@@ -289,58 +292,37 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Grid - More compact grid for subtle look */}
             {filteredTickets.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                 {filteredTickets.map(ticket => (
-                  <LotteryCard 
-                    key={ticket.id} 
-                    ticket={ticket} 
-                    onClick={(t) => setSelectedTicket(t)} 
-                  />
+                  <LotteryCard key={ticket.id} ticket={ticket} onClick={(t) => setSelectedTicket(t)} />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <Archive className="h-12 w-12 text-slate-200 mb-4" />
                 <h3 className="text-lg font-bold text-slate-600">No items found</h3>
-                <p className="text-slate-400 mt-1 text-sm max-w-xs text-center">
-                  Try adjusting your search or add a new ticket.
-                </p>
+                <p className="text-slate-400 mt-1 text-sm text-center">Your collection is empty or filters are too strict.</p>
                 <Button variant="outline" className="mt-6" size="sm" onClick={() => setView('add')}>
                   Add your first ticket
                 </Button>
               </div>
             )}
           </div>
-        )}
-
-        {view === 'stats' && (
+        ) : view === 'stats' ? (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-bold text-slate-800">Archive Insights</h2>
-              <span className="text-slate-500 text-xs font-medium">{tickets.length} Items Archived</span>
-            </div>
+            <h2 className="text-xl font-bold text-slate-800">Archive Insights ({tickets.length} items)</h2>
             <StatsDashboard tickets={tickets} />
           </div>
-        )}
-
-        {view === 'add' && (
+        ) : (
           <div className="max-w-4xl mx-auto py-4">
-            <LotteryForm 
-              onSave={handleSaveTicket} 
-              onCancel={() => setView('gallery')}
-              ticketCount={tickets.length}
-            />
+            <LotteryForm onSave={handleSaveTicket} onCancel={() => setView('gallery')} ticketCount={tickets.length} />
           </div>
         )}
       </main>
 
-      {/* Simple Footer */}
       <footer className="bg-white border-t border-slate-200 py-6 text-center mt-auto">
-        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">
-          The World of Lottery &copy; {new Date().getFullYear()}
-        </p>
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()}</p>
       </footer>
     </div>
   );
