@@ -7,9 +7,9 @@ export const analyzeLotteryTicket = async (imageBase64: string) => {
   const ai = getAI();
   const model = 'gemini-3-flash-preview';
 
-  const prompt = `Analyze this lottery ticket image and extract details for a digital archive. 
-  Try to identify the country, extraction number, draw date, monetary value, state (Specimen, Amostra, or Circulated), type of lottery, and the managing entity.
-  Format the response as JSON.`;
+  const prompt = `Analise esta imagem de um bilhete de lotaria para um arquivo digital. 
+  Extraia: país (em português), número da extração, data do sorteio (AAAA-MM-DD), valor monetário, estado (Amostra, Specimen ou cs), tipo de lotaria e a entidade gestora.
+  Responda apenas em formato JSON.`;
 
   try {
     const response = await ai.models.generateContent({
@@ -34,12 +34,12 @@ export const analyzeLotteryTicket = async (imageBase64: string) => {
           properties: {
             country: { type: Type.STRING },
             extractionNo: { type: Type.STRING },
-            drawDate: { type: Type.STRING, description: 'YYYY-MM-DD format if possible' },
+            drawDate: { type: Type.STRING, description: 'Formato AAAA-MM-DD' },
             value: { type: Type.STRING },
-            state: { type: Type.STRING, description: 'Specimen, Amostra, or cs' },
+            state: { type: Type.STRING, description: 'Amostra, Specimen ou cs' },
             type: { type: Type.STRING },
             entity: { type: Type.STRING },
-            dimensions: { type: Type.STRING, description: 'Estimated dimensions e.g. 150x80mm' }
+            dimensions: { type: Type.STRING, description: 'Ex: 150x80mm' }
           },
           required: ['country', 'type', 'entity']
         }
@@ -48,7 +48,7 @@ export const analyzeLotteryTicket = async (imageBase64: string) => {
 
     return JSON.parse(response.text);
   } catch (error) {
-    console.error("Gemini Analysis Error:", error);
+    console.error("Erro na Análise da Geni:", error);
     throw error;
   }
 };

@@ -1,17 +1,17 @@
 
 export enum Continent {
-  AFRICA = 'Africa',
-  AMERICAS = 'Americas',
-  ASIA = 'Asia',
-  EUROPE = 'Europe',
-  OCEANIA = 'Oceania'
+  AFRICA = 'África',
+  AMERICAS = 'Américas',
+  ASIA = 'Ásia',
+  EUROPE = 'Europa',
+  OCEANIA = 'Oceânia'
 }
 
 export enum TicketState {
   AMOSTRA = 'Amostra',
   SPECIMEN = 'Specimen',
-  CS = 'cs (Circulated)',
-  UNCIRCULATED = 'Uncirculated'
+  CS = 'cs (Circulado)',
+  UNCIRCULATED = 'Não Circulado'
 }
 
 export interface LotteryTicket {

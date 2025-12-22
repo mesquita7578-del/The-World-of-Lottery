@@ -40,7 +40,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
   if (tickets.length === 0) {
     return (
       <div className="bg-white p-12 rounded-xl border border-slate-200 text-center">
-        <p className="text-slate-500">No data available for statistics yet. Start adding your collection!</p>
+        <p className="text-slate-500">Ainda não há dados disponíveis para estatísticas, Jorge. Comece a adicionar a sua coleção!</p>
       </div>
     );
   }
@@ -48,7 +48,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
   return (
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800 mb-6">Distribution by Continent</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-6">Distribuição por Continente</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <PieChart>
@@ -65,7 +65,7 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip />
+              <Tooltip labelStyle={{ color: '#1e293b' }} />
               <Legend />
             </PieChart>
           </ResponsiveContainer>
@@ -73,31 +73,31 @@ export const StatsDashboard: React.FC<StatsDashboardProps> = ({ tickets }) => {
       </div>
 
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm">
-        <h3 className="text-lg font-bold text-slate-800 mb-6">Top Countries in Collection</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-6">Países Principais na Coleção</h3>
         <div className="h-[300px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={countryData} layout="vertical">
               <XAxis type="number" hide />
-              <YAxis dataKey="name" type="category" width={80} style={{ fontSize: '12px' }} />
+              <YAxis dataKey="name" type="category" width={80} style={{ fontSize: '10px', fontWeight: 'bold' }} />
               <Tooltip />
-              <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} />
+              <Bar dataKey="value" fill="#4f46e5" radius={[0, 4, 4, 0]} name="Itens" />
             </BarChart>
           </ResponsiveContainer>
         </div>
       </div>
 
       <div className="bg-white p-6 rounded-xl border border-slate-200 shadow-sm lg:col-span-2">
-        <h3 className="text-lg font-bold text-slate-800 mb-6">Condition States</h3>
+        <h3 className="text-lg font-bold text-slate-800 mb-6">Estado de Conservação</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {stateData.map((item, idx) => (
             <div key={item.name} className="p-4 rounded-lg bg-slate-50 border border-slate-100 flex flex-col items-center">
               <span className="text-2xl font-bold text-indigo-600">{item.value}</span>
-              <span className="text-xs text-slate-500 uppercase font-bold tracking-tighter mt-1">{item.name}</span>
+              <span className="text-[10px] text-slate-500 uppercase font-bold tracking-tighter mt-1 text-center">{item.name}</span>
             </div>
           ))}
           <div className="p-4 rounded-lg bg-indigo-600 border border-indigo-700 flex flex-col items-center text-white">
             <span className="text-2xl font-bold">{tickets.length}</span>
-            <span className="text-xs uppercase font-bold tracking-tighter mt-1 opacity-80">Total Items</span>
+            <span className="text-[10px] uppercase font-bold tracking-tighter mt-1 opacity-80">Total de Itens</span>
           </div>
         </div>
       </div>

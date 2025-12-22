@@ -15,14 +15,13 @@ interface CollectorProfile {
 }
 
 const App: React.FC = () => {
-  // Collection State
   const [tickets, setTickets] = useState<LotteryTicket[]>([]);
   const [view, setView] = useState<'gallery' | 'stats' | 'add'>('gallery');
   const [searchTerm, setSearchTerm] = useState('');
-  const [continentFilter, setContinentFilter] = useState<string>('All');
+  const [continentFilter, setContinentFilter] = useState<string>('Todos');
   const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
+  const [hoveredTicket, setHoveredTicket] = useState<LotteryTicket | null>(null);
   
-  // Auth State
   const [collector, setCollector] = useState<CollectorProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
@@ -31,7 +30,6 @@ const App: React.FC = () => {
   
   const [isLoaded, setIsLoaded] = useState(false);
 
-  // Load from DB on mount
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -46,7 +44,7 @@ const App: React.FC = () => {
           setAuthMode('register');
         }
       } catch (err) {
-        console.error("Failed to load archive:", err);
+        console.error("Falha ao carregar arquivo:", err);
       } finally {
         setIsLoaded(true);
       }
@@ -73,7 +71,7 @@ const App: React.FC = () => {
       setIsLoggedIn(true);
       setAuthError('');
     } else {
-      setAuthError('Senha inválida.');
+      setAuthError('Senha de acesso incorreta.');
     }
   };
 
@@ -90,7 +88,7 @@ const App: React.FC = () => {
         t.extractionNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
         t.autoId.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesContinent = continentFilter === 'All' || t.continent === continentFilter;
+      const matchesContinent = continentFilter === 'Todos' || t.continent === continentFilter;
       
       return matchesSearch && matchesContinent;
     }).sort((a, b) => {
@@ -112,23 +110,23 @@ const App: React.FC = () => {
       setTickets(prev => [newTicket, ...prev]);
       setView('gallery');
     } catch (err) {
-      alert("Falha ao guardar na base de dados.");
+      alert("Erro ao guardar na base de dados.");
     }
   };
 
   const handleDeleteTicket = async (id: string) => {
-    if (confirm("Tens a certeza que desejas eliminar este bilhete do arquivo, Jorge?")) {
+    if (confirm(`Jorge, confirma que deseja apagar este bilhete? A Geni pode ajudar a registá-lo novamente depois se mudar de ideia.`)) {
       try {
         await deleteTicketDB(id);
         setTickets(prev => prev.filter(t => t.id !== id));
         setSelectedTicket(null);
       } catch (err) {
-        alert("Falha ao eliminar da base de dados.");
+        alert("Erro ao eliminar da base de dados.");
       }
     }
   };
 
-  const continents = ['All', ...Object.values(Continent)];
+  const continents = ['Todos', ...Object.values(Continent)];
 
   if (!isLoggedIn) {
     return (
@@ -142,7 +140,7 @@ const App: React.FC = () => {
             </div>
             <h1 className="text-2xl font-serif font-bold text-center text-slate-900 mb-2">The World of Lottery</h1>
             <p className="text-slate-500 text-center text-sm mb-8">
-              {authMode === 'register' ? 'Registe-se como Colecionador' : 'Aceda ao seu Arquivo Privado'}
+              {authMode === 'register' ? 'Jorge, crie o seu perfil de colecionador' : 'Aceda ao seu arquivo particular'}
             </p>
 
             <form onSubmit={authMode === 'register' ? handleRegister : handleLogin} className="space-y-4">
@@ -181,7 +179,7 @@ const App: React.FC = () => {
               )}
 
               <Button type="submit" className="w-full" size="lg">
-                {authMode === 'register' ? 'Criar Perfil' : 'Desbloquear Arquivo'}
+                {authMode === 'register' ? 'Criar Perfil' : 'Abrir Arquivo'}
               </Button>
               
               {collector && (
@@ -197,7 +195,7 @@ const App: React.FC = () => {
           </div>
           <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center items-center gap-2">
             <ShieldCheck size={14} className="text-emerald-500" />
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Capacidade para 20k+ Imagens (IndexedDB)</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Geni Safe Storage Ativo (IndexedDB)</span>
           </div>
         </div>
       </div>
@@ -225,12 +223,12 @@ const App: React.FC = () => {
               <div className="flex items-center gap-2">
                 <p className="text-[10px] text-slate-500 font-medium tracking-wide uppercase flex items-center gap-1">
                   <User size={10} className="text-indigo-500" />
-                  Arquivo de {collector?.name}
+                  Coleção de {collector?.name}
                 </p>
                 <div className="h-1 w-1 rounded-full bg-slate-300"></div>
                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wide flex items-center gap-1">
                   <Sparkles size={10} />
-                  Assistente Gemini Online
+                  Assistente Geni Online
                 </p>
               </div>
             </div>
@@ -241,23 +239,23 @@ const App: React.FC = () => {
               <button 
                 onClick={() => setView('gallery')}
                 className={`p-2 rounded-md transition-all ${view === 'gallery' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                title="Galeria"
+                title="Vista Galeria"
               >
                 <Globe size={16} />
               </button>
               <button 
                 onClick={() => setView('stats')}
                 className={`p-2 rounded-md transition-all ${view === 'stats' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                title="Estatísticas"
+                title="Estatísticas da Coleção"
               >
                 <BarChart3 size={16} />
               </button>
             </div>
             <Button variant="secondary" size="sm" onClick={() => setView('add')} className="h-9">
               <Plus size={14} className="mr-1.5" />
-              Adicionar Bilhete
+              Novo Registo
             </Button>
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Sair">
+            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Sair do Arquivo">
               <LogOut size={18} />
             </button>
           </div>
@@ -268,7 +266,7 @@ const App: React.FC = () => {
         {!isLoaded ? (
           <div className="flex flex-col items-center justify-center py-20">
              <div className="animate-spin h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full mb-4"></div>
-             <p className="text-slate-500 font-medium">A aceder à Base de Dados, Jorge...</p>
+             <p className="text-slate-500 font-medium">A Geni está a abrir o seu arquivo, Jorge...</p>
           </div>
         ) : view === 'gallery' ? (
           <div className="space-y-6">
@@ -277,7 +275,7 @@ const App: React.FC = () => {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                 <input 
                   type="text" 
-                  placeholder="Pesquisar no arquivo..."
+                  placeholder="Pesquisar por país, entidade ou ID..."
                   className="w-full pl-9 pr-4 py-1.5 bg-slate-50 border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs"
                   value={searchTerm}
                   onChange={e => setSearchTerm(e.target.value)}
@@ -302,14 +300,30 @@ const App: React.FC = () => {
             {filteredTickets.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                 {filteredTickets.map(ticket => (
-                  <LotteryCard key={ticket.id} ticket={ticket} onClick={(t) => setSelectedTicket(t)} />
+                  <LotteryCard 
+                    key={ticket.id} 
+                    ticket={ticket} 
+                    onClick={(t) => setSelectedTicket(t)}
+                    onMouseEnter={() => setHoveredTicket(ticket)}
+                    onMouseLeave={() => setHoveredTicket(null)}
+                    isHighlighted={
+                      hoveredTicket !== null && 
+                      (ticket.country === hoveredTicket.country || ticket.type === hoveredTicket.type)
+                    }
+                    isDimmed={
+                      hoveredTicket !== null && 
+                      ticket.id !== hoveredTicket.id &&
+                      ticket.country !== hoveredTicket.country && 
+                      ticket.type !== hoveredTicket.type
+                    }
+                  />
                 ))}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <Archive className="h-12 w-12 text-slate-200 mb-4" />
-                <h3 className="text-lg font-bold text-slate-600">Arquivo Vazio</h3>
-                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, comece a adicionar a sua coleção clicando em "Adicionar Bilhete".</p>
+                <h3 className="text-lg font-bold text-slate-600">Nada encontrado no arquivo</h3>
+                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, a Geni está pronta para começar a organizar os seus bilhetes!</p>
                 <Button variant="outline" className="mt-6" size="sm" onClick={() => setView('add')}>
                   Adicionar o primeiro bilhete
                 </Button>
@@ -318,7 +332,7 @@ const App: React.FC = () => {
           </div>
         ) : view === 'stats' ? (
           <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-800">Insights da Coleção ({tickets.length} itens)</h2>
+            <h2 className="text-xl font-bold text-slate-800">Análise Detalhada ({tickets.length} itens)</h2>
             <StatsDashboard tickets={tickets} />
           </div>
         ) : (
@@ -329,7 +343,7 @@ const App: React.FC = () => {
       </main>
 
       <footer className="bg-white border-t border-slate-200 py-6 text-center mt-auto">
-        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()} • Assistente Digital Gemini</p>
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()} • Assistente Digital Geni</p>
       </footer>
     </div>
   );

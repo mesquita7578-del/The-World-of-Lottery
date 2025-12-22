@@ -6,23 +6,23 @@ export const TICKET_STATES = Object.values(TicketState);
 
 export const COUNTRY_ISO_MAP: Record<string, string> = {
   'Portugal': 'PT',
-  'Spain': 'ES',
-  'Brazil': 'BR',
-  'USA': 'US',
-  'United Kingdom': 'UK',
-  'France': 'FR',
-  'Italy': 'IT',
-  'Germany': 'DE',
-  'Japan': 'JP',
+  'Espanha': 'ES',
+  'Brasil': 'BR',
+  'EUA': 'US',
+  'Reino Unido': 'UK',
+  'França': 'FR',
+  'Itália': 'IT',
+  'Alemanha': 'DE',
+  'Japão': 'JP',
   'China': 'CN',
-  'Australia': 'AU'
+  'Austrália': 'AU'
 };
 
 export const LOTTERY_TYPES = [
-  'National Lottery',
-  'Instant Win / Scratchcard',
-  'Charity Lottery',
-  'Raffle',
-  'State Lottery',
-  'Regional Lottery'
+  'Lotaria Nacional',
+  'Raspadinha / Instantânea',
+  'Lotaria de Caridade',
+  'Rifa',
+  'Lotaria Estatal',
+  'Lotaria Regional'
 ];

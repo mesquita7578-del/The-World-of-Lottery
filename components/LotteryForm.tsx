@@ -88,7 +88,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
       <div className="flex justify-between items-center mb-6">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Novo Registo no Arquivo</h2>
-          <p className="text-xs text-slate-400 mt-0.5">Olá Jorge, adicione as imagens de frente e verso do seu bilhete.</p>
+          <p className="text-xs text-slate-400 mt-0.5">Olá Jorge, a Geni está pronta para processar a frente e o verso do seu bilhete.</p>
         </div>
         <Button variant="outline" size="sm" onClick={onCancel}>
           <X size={16} />
@@ -171,7 +171,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
               isLoading={loading}
             >
               <Sparkles className="mr-2 h-4 w-4" />
-              Analisar com Gemini AI
+              Analisar com Geni AI
             </Button>
           )}
         </div>
@@ -284,7 +284,7 @@ export const LotteryForm: React.FC<LotteryFormProps> = ({ onSave, onCancel, tick
           <div>
             <label className="block text-xs font-bold text-slate-500 uppercase mb-1">Notas / Observações</label>
             <textarea 
-              placeholder="Adicione detalhes específicos, curiosidades ou o estado de conservação..."
+              placeholder="Jorge, adicione aqui detalhes específicos, curiosidades ou o estado de conservação..."
               className="w-full px-3 py-2 border border-slate-200 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none text-sm min-h-[80px]"
               value={formData.notes}
               onChange={e => setFormData({...formData, notes: e.target.value})}
