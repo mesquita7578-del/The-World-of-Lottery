@@ -125,13 +125,6 @@ export const LotteryCard: React.FC<LotteryCardProps> = ({
           </span>
         </div>
       </div>
-      
-      {/* Label de Conexão (apenas quando em destaque) */}
-      {isHighlighted && !isDimmed && (
-        <div className="absolute bottom-0 left-0 right-0 bg-indigo-600 py-0.5 px-2 text-center">
-           <span className="text-[8px] font-bold text-white uppercase tracking-widest">Item Relacionado</span>
-        </div>
-      )}
     </div>
   );
 };
