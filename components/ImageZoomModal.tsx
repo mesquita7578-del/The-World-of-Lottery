@@ -1,15 +1,16 @@
 
 import React, { useState } from 'react';
-import { X, Download, Trash2, FlipHorizontal, AlignLeft, ZoomIn, ZoomOut } from 'lucide-react';
+import { X, Download, Trash2, FlipHorizontal, ZoomIn, ZoomOut, Sparkles, Search } from 'lucide-react';
 import { LotteryTicket } from '../types';
 
 interface ImageZoomModalProps {
   ticket: LotteryTicket;
   onClose: () => void;
   onDelete: () => void;
+  onResearch: (ticket: LotteryTicket) => void;
 }
 
-export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose, onDelete }) => {
+export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose, onDelete, onResearch }) => {
   const [side, setSide] = useState<'front' | 'back'>('front');
   const [isZoomed, setIsZoomed] = useState(false);
   const currentImage = side === 'front' ? ticket.frontImageUrl : (ticket.backImageUrl || ticket.frontImageUrl);
@@ -26,27 +27,37 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
         {/* Cabeçalho de Ações */}
         <div className="w-full flex justify-between items-start text-white">
           <div className="flex flex-col">
-            <h2 className="text-xl md:text-2xl font-serif font-bold leading-tight text-indigo-100">{ticket.entity}</h2>
+            <div className="flex items-center gap-2">
+              <h2 className="text-xl md:text-2xl font-serif font-bold leading-tight text-indigo-100">{ticket.entity}</h2>
+              {ticket.isFavorite && <span className="text-amber-400 text-sm">★ Especial</span>}
+            </div>
             <p className="text-[10px] md:text-xs text-slate-400 font-mono tracking-widest mt-1">
               {ticket.country.toUpperCase()} • {ticket.autoId} • #{ticket.extractionNo}
             </p>
           </div>
           
           <div className="flex items-center gap-2">
+            <button 
+              onClick={() => onResearch(ticket)}
+              className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg group"
+            >
+              <Sparkles size={14} className="group-hover:animate-pulse" />
+              <span>Investigar com Geni</span>
+            </button>
+
             {ticket.backImageUrl && (
               <button 
                 onClick={() => setSide(side === 'front' ? 'back' : 'front')}
-                className="flex items-center gap-2 px-4 py-2 bg-indigo-600 hover:bg-indigo-500 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all active:scale-95 shadow-lg"
+                className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg text-[10px] font-bold uppercase tracking-widest transition-all"
               >
                 <FlipHorizontal size={14} />
-                <span>{side === 'front' ? 'Ver Verso' : 'Ver Frente'}</span>
+                <span>{side === 'front' ? 'Verso' : 'Frente'}</span>
               </button>
             )}
             
             <button 
               onClick={() => setIsZoomed(!isZoomed)}
               className="p-2 hover:bg-white/10 rounded-lg transition-colors text-slate-300"
-              title={isZoomed ? "Reduzir" : "Ampliar"}
             >
               {isZoomed ? <ZoomOut size={20} /> : <ZoomIn size={20} />}
             </button>
@@ -60,7 +71,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
           </div>
         </div>
 
-        {/* Área da Imagem - Agora com Redução */}
+        {/* Área da Imagem */}
         <div className="relative flex-1 w-full flex items-center justify-center overflow-hidden">
           <div 
             className={`relative transition-all duration-500 ease-in-out flex items-center justify-center
@@ -77,7 +88,6 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
               `}
             />
             
-            {/* Indicador de Lado */}
             {!isZoomed && (
               <div className="absolute -bottom-6 left-1/2 -translate-x-1/2 pointer-events-none">
                 <span className="text-[9px] font-black text-slate-500 uppercase tracking-[0.3em] whitespace-nowrap">
@@ -128,7 +138,7 @@ export const ImageZoomModal: React.FC<ImageZoomModalProps> = ({ ticket, onClose,
                 className="flex items-center gap-2 text-slate-400 hover:text-white text-[10px] font-bold uppercase tracking-wider transition-colors"
               >
                 <Download size={14} />
-                Descarregar Imagem
+                Descarregar
               </button>
             </div>
             <p className="text-[9px] text-slate-600 font-bold uppercase tracking-widest">Arquivo Particular Jorge</p>

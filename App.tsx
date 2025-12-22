@@ -5,9 +5,11 @@ import { LotteryCard } from './components/LotteryCard';
 import { LotteryForm } from './components/LotteryForm';
 import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
+import { ResearchModal } from './components/ResearchModal';
 import { Button } from './components/Button';
 import { Search, Plus, Archive, BarChart3, Globe, Lock, User, LogOut, ShieldCheck, Sparkles, AlertCircle, MapPin, Heart } from 'lucide-react';
 import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
+import { researchTicketDetails } from './services/geminiService';
 
 interface CollectorProfile {
   name: string;
@@ -24,6 +26,10 @@ const App: React.FC = () => {
   const [hoveredTicket, setHoveredTicket] = useState<LotteryTicket | null>(null);
   const [showOnlyDuplicates, setShowOnlyDuplicates] = useState(false);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  
+  // Estado para Pesquisa Geni
+  const [researchData, setResearchData] = useState<{ text: string; sources: any[] } | null>(null);
+  const [isResearching, setIsResearching] = useState(false);
   
   const [collector, setCollector] = useState<CollectorProfile | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -54,6 +60,19 @@ const App: React.FC = () => {
     };
     loadData();
   }, []);
+
+  const handleResearch = async (ticket: LotteryTicket) => {
+    setIsResearching(true);
+    try {
+      const infoString = `${ticket.country}, ${ticket.entity}, ${ticket.type}, Data: ${ticket.drawDate}, Valor: ${ticket.value}, Extração: ${ticket.extractionNo}, Notas: ${ticket.notes || ''}`;
+      const results = await researchTicketDetails(infoString);
+      setResearchData(results);
+    } catch (error) {
+      alert("Jorge, a Geni teve um pequeno problema na pesquisa. Tente novamente mais tarde.");
+    } finally {
+      setIsResearching(false);
+    }
+  };
 
   const duplicateIds = useMemo(() => {
     const ids = new Set<string>();
@@ -157,7 +176,7 @@ const App: React.FC = () => {
   };
 
   const handleDeleteTicket = async (id: string) => {
-    if (confirm(`Jorge, confirma que deseja apagar este bilhete? A Geni pode ajudar a registá-lo novamente depois se mudar de ideia.`)) {
+    if (confirm(`Jorge, confirma que deseja apagar este bilhete?`)) {
       try {
         await deleteTicketDB(id);
         setTickets(prev => prev.filter(t => t.id !== id));
@@ -227,7 +246,7 @@ const App: React.FC = () => {
           </div>
           <div className="bg-slate-50 p-4 border-t border-slate-100 flex justify-center items-center gap-2">
             <ShieldCheck size={14} className="text-emerald-500" />
-            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Geni Safe Storage Ativo (IndexedDB)</span>
+            <span className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Geni Safe Storage Ativo</span>
           </div>
         </div>
       </div>
@@ -241,6 +260,15 @@ const App: React.FC = () => {
           ticket={selectedTicket} 
           onClose={() => setSelectedTicket(null)} 
           onDelete={() => handleDeleteTicket(selectedTicket.id)}
+          onResearch={handleResearch}
+        />
+      )}
+
+      {(researchData || isResearching) && (
+        <ResearchModal 
+          data={researchData} 
+          isLoading={isResearching} 
+          onClose={() => setResearchData(null)} 
         />
       )}
 
@@ -260,7 +288,7 @@ const App: React.FC = () => {
                 <div className="h-1 w-1 rounded-full bg-slate-300"></div>
                 <p className="text-[10px] text-indigo-600 font-bold uppercase tracking-wide flex items-center gap-1">
                   <Sparkles size={10} />
-                  Assistente Geni Online
+                  Geni Intelligence
                 </p>
               </div>
             </div>
@@ -278,7 +306,7 @@ const App: React.FC = () => {
               <button 
                 onClick={() => setView('stats')}
                 className={`p-2 rounded-md transition-all ${view === 'stats' ? 'bg-white shadow-sm text-indigo-600' : 'text-slate-500 hover:text-slate-700'}`}
-                title="Estatísticas da Coleção"
+                title="Estatísticas"
               >
                 <BarChart3 size={16} />
               </button>
@@ -287,7 +315,7 @@ const App: React.FC = () => {
               <Plus size={14} className="mr-1.5" />
               Novo Registo
             </Button>
-            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors" title="Sair do Arquivo">
+            <button onClick={handleLogout} className="p-2 text-slate-400 hover:text-rose-500 transition-colors">
               <LogOut size={18} />
             </button>
           </div>
@@ -298,7 +326,7 @@ const App: React.FC = () => {
         {!isLoaded ? (
           <div className="flex flex-col items-center justify-center py-20">
              <div className="animate-spin h-10 w-10 border-4 border-indigo-600 border-t-transparent rounded-full mb-4"></div>
-             <p className="text-slate-500 font-medium">A Geni está a abrir o seu arquivo, Jorge...</p>
+             <p className="text-slate-500 font-medium">A abrir o seu arquivo, Jorge...</p>
           </div>
         ) : view === 'gallery' ? (
           <div className="space-y-6">
@@ -308,7 +336,7 @@ const App: React.FC = () => {
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                   <input 
                     type="text" 
-                    placeholder="Pesquisar por país, entidade ou ID..."
+                    placeholder="Pesquisar no arquivo..."
                     className="w-full pl-9 pr-4 py-2 bg-white border border-slate-200 rounded-lg outline-none focus:ring-2 focus:ring-indigo-500 text-xs shadow-sm"
                     value={searchTerm}
                     onChange={e => setSearchTerm(e.target.value)}
@@ -344,7 +372,7 @@ const App: React.FC = () => {
                      className={`p-2 rounded-xl transition-all ${
                        showOnlyFavorites ? 'bg-amber-500 text-white shadow-md' : 'bg-amber-50 text-amber-600 hover:bg-amber-100'
                      }`}
-                     title="Ver Apenas Favoritos"
+                     title="Favoritos"
                    >
                      <Heart size={16} fill={showOnlyFavorites ? "currentColor" : "none"} />
                    </button>
@@ -360,7 +388,6 @@ const App: React.FC = () => {
                         className={`p-2 rounded-xl transition-all ${
                           showOnlyDuplicates ? 'bg-rose-600 text-white shadow-md' : 'bg-rose-50 text-rose-600 hover:bg-rose-100'
                         }`}
-                        title={`Ver Duplicados (${duplicateIds.size})`}
                       >
                         <AlertCircle size={16} />
                       </button>
@@ -395,12 +422,6 @@ const App: React.FC = () => {
               )}
             </div>
 
-            <div className="flex justify-between items-center px-1">
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-                {showOnlyFavorites ? 'Exibindo Peças de Destaque' : 'Arquivo Digital: Listagem Completa'}
-              </p>
-            </div>
-
             {filteredTickets.length > 0 ? (
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-4 md:gap-5">
                 {filteredTickets.map(ticket => (
@@ -427,28 +448,22 @@ const App: React.FC = () => {
             ) : (
               <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-300">
                 <Archive className="h-12 w-12 text-slate-200 mb-4" />
-                <h3 className="text-lg font-bold text-slate-600">Nada encontrado neste filtro</h3>
-                <p className="text-slate-400 mt-1 text-sm text-center">Jorge, a Geni sugere limpar os filtros para ver as suas pérolas da Mongólia e Kazan.</p>
+                <h3 className="text-lg font-bold text-slate-600">Nada encontrado</h3>
                 <Button variant="outline" className="mt-6" size="sm" onClick={() => {setContinentFilter('Todos'); setCountryFilter('Todos'); setSearchTerm(''); setShowOnlyDuplicates(false); setShowOnlyFavorites(false);}}>
-                  Ver Tudo
+                  Limpar Filtros
                 </Button>
               </div>
             )}
           </div>
         ) : view === 'stats' ? (
-          <div className="space-y-6">
-            <h2 className="text-xl font-bold text-slate-800">Painel de Controlo da Coleção</h2>
-            <StatsDashboard tickets={tickets} />
-          </div>
+          <StatsDashboard tickets={tickets} />
         ) : (
-          <div className="max-w-4xl mx-auto py-4">
-            <LotteryForm onSave={handleSaveTicket} onCancel={() => setView('gallery')} ticketCount={tickets.length} />
-          </div>
+          <LotteryForm onSave={handleSaveTicket} onCancel={() => setView('gallery')} ticketCount={tickets.length} />
         )}
       </main>
 
       <footer className="bg-white border-t border-slate-200 py-6 text-center mt-auto">
-        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()} • Assistente Digital Geni</p>
+        <p className="text-slate-400 text-[10px] uppercase tracking-widest font-bold">The World of Lottery &copy; {new Date().getFullYear()} • Geni Intelligence</p>
       </footer>
     </div>
   );
