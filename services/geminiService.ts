@@ -1,7 +1,8 @@
 
 import { GoogleGenAI, Type } from "@google/genai";
 
-const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+// Fixed: Corrected initialization to strictly follow guidelines using process.env.API_KEY directly.
+const getAI = () => new GoogleGenAI({ apiKey: process.env.API_KEY });
 
 export const analyzeLotteryTicket = async (imageBase64: string) => {
   const ai = getAI();
