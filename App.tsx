@@ -7,9 +7,10 @@ import { StatsDashboard } from './components/StatsDashboard';
 import { ImageZoomModal } from './components/ImageZoomModal';
 import { ResearchModal } from './components/ResearchModal';
 import { Button } from './components/Button';
-import { Search, Plus, Archive, BarChart3, Globe, Download, LogOut, MonitorSmartphone, Heart, ShieldCheck, Database } from 'lucide-react';
+import { Search, Plus, Archive, BarChart3, Globe, Download, LogOut, MonitorSmartphone, Heart, ShieldCheck, Database, Filter } from 'lucide-react';
 import { getAllTicketsDB, saveTicketDB, deleteTicketDB } from './services/dbService';
 import { researchTicketDetails } from './services/geminiService';
+import { LOTTERY_TYPES } from './constants';
 
 interface CollectorProfile {
   name: string;
@@ -22,6 +23,7 @@ const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [continentFilter, setContinentFilter] = useState<string>('Todos');
   const [countryFilter, setCountryFilter] = useState<string>('Todos');
+  const [typeFilter, setTypeFilter] = useState<string>('Todos');
   const [selectedTicket, setSelectedTicket] = useState<LotteryTicket | null>(null);
   const [editingTicket, setEditingTicket] = useState<LotteryTicket | null>(null);
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
@@ -83,7 +85,7 @@ const App: React.FC = () => {
               country: 'Mongólia',
               continent: Continent.ASIA,
               state: TicketState.UNCIRCULATED,
-              type: 'Lotaria Estatal (60º Aniversário)',
+              type: 'Lotaria Estatal',
               entity: 'República Popular da Mongólia',
               frontImageUrl: 'https://images.unsplash.com/photo-1599408162449-41ca164e287a?q=80&w=1000&auto=format&fit=crop',
               notes: 'Peça rara com estética socialista. Celebra os 60 anos da revolução. Jorge: "Deu muito trabalho a conseguir".',
@@ -100,7 +102,7 @@ const App: React.FC = () => {
               country: 'Rússia (Tartaristão)',
               continent: Continent.EUROPE,
               state: TicketState.UNCIRCULATED,
-              type: 'Lotaria Comemorativa (1000 Anos de Kazan)',
+              type: 'Lotaria Comemorativa',
               entity: 'Ministério das Finanças da RF',
               frontImageUrl: 'https://images.unsplash.com/photo-1555620245-7360098f98ec?q=80&w=1000&auto=format&fit=crop',
               notes: 'Bilhete especial dos 1000 anos de Kazan. Jorge: "Peça que gosto muito".',
@@ -171,10 +173,11 @@ const App: React.FC = () => {
                           t.autoId.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesContinent = continentFilter === 'Todos' || t.continent === continentFilter;
       const matchesCountry = countryFilter === 'Todos' || t.country === countryFilter;
+      const matchesType = typeFilter === 'Todos' || t.type === typeFilter;
       const matchesFavoriteFilter = !showOnlyFavorites || t.isFavorite;
-      return matchesSearch && matchesContinent && matchesCountry && matchesFavoriteFilter;
+      return matchesSearch && matchesContinent && matchesCountry && matchesType && matchesFavoriteFilter;
     }).sort((a, b) => (a.drawDate || '').localeCompare(b.drawDate || ''));
-  }, [tickets, searchTerm, continentFilter, countryFilter, showOnlyFavorites]);
+  }, [tickets, searchTerm, continentFilter, countryFilter, typeFilter, showOnlyFavorites]);
 
   if (!isLoggedIn) {
     return (
@@ -262,9 +265,33 @@ const App: React.FC = () => {
                 </div>
                 <button onClick={() => setShowOnlyFavorites(!showOnlyFavorites)} className={`p-2 rounded-xl transition-all ${showOnlyFavorites ? 'bg-amber-500 text-white shadow-md' : 'bg-white text-slate-400 border border-slate-200'}`}><Heart size={16} fill={showOnlyFavorites ? "currentColor" : "none"} /></button>
               </div>
-              <div className="px-4 py-2 flex items-center gap-2 overflow-x-auto scrollbar-hide border-t border-slate-50">
-                <button onClick={() => setCountryFilter('Todos')} className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${countryFilter === 'Todos' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500'}`}>Todos os Países</button>
-                {availableCountries.map(c => <button key={c} onClick={() => setCountryFilter(c)} className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap ${countryFilter === c ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-500'}`}>{c}</button>)}
+              
+              {/* Filtro de Países */}
+              <div className="px-4 py-2 flex items-center gap-3 overflow-x-auto scrollbar-hide border-t border-slate-50">
+                <div className="flex items-center gap-1.5 text-slate-400 shrink-0 pr-2 border-r border-slate-100">
+                  <Globe size={12} />
+                  <span className="text-[9px] font-bold uppercase tracking-tighter">País:</span>
+                </div>
+                <button onClick={() => setCountryFilter('Todos')} className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${countryFilter === 'Todos' ? 'bg-indigo-600 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>Todos</button>
+                {availableCountries.map(c => <button key={c} onClick={() => setCountryFilter(c)} className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${countryFilter === c ? 'bg-indigo-600 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>{c}</button>)}
+              </div>
+
+              {/* Filtro de Tipo de Lotaria */}
+              <div className="px-4 py-2 flex items-center gap-3 overflow-x-auto scrollbar-hide border-t border-slate-50 bg-slate-50/30">
+                <div className="flex items-center gap-1.5 text-slate-400 shrink-0 pr-2 border-r border-slate-100">
+                  <Filter size={12} />
+                  <span className="text-[9px] font-bold uppercase tracking-tighter">Tipo:</span>
+                </div>
+                <button onClick={() => setTypeFilter('Todos')} className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${typeFilter === 'Todos' ? 'bg-amber-500 text-white' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}>Todos</button>
+                {LOTTERY_TYPES.map(type => (
+                  <button 
+                    key={type} 
+                    onClick={() => setTypeFilter(type)} 
+                    className={`px-3 py-1 rounded-full text-[10px] font-bold whitespace-nowrap transition-all ${typeFilter === type ? 'bg-amber-500 text-white shadow-sm' : 'bg-slate-100 text-slate-500 hover:bg-slate-200'}`}
+                  >
+                    {type}
+                  </button>
+                ))}
               </div>
             </div>
             
@@ -276,6 +303,7 @@ const App: React.FC = () => {
                 <div className="col-span-full py-20 text-center space-y-3">
                   <div className="inline-flex p-4 bg-slate-100 rounded-full text-slate-300"><Search size={32} /></div>
                   <p className="text-slate-400 text-sm font-medium">Jorge, não encontrei nada com esses filtros no arquivo.</p>
+                  <Button variant="outline" size="sm" onClick={() => {setSearchTerm(''); setCountryFilter('Todos'); setTypeFilter('Todos'); setShowOnlyFavorites(false);}}>Limpar Filtros</Button>
                 </div>
               )}
             </div>
@@ -290,7 +318,6 @@ const App: React.FC = () => {
       <footer className="bg-white border-t border-slate-200 py-6 px-8">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
           <div className="flex items-center gap-4">
-            {/* Fixed: removed duplicate onClick and corrected function name */}
             <button 
               onClick={handleExportCollection}
               className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg text-[10px] font-bold uppercase tracking-widest hover:bg-slate-800 transition-all shadow-md"
